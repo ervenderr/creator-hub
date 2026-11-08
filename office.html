@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Agent Office | Ervenderr</title>
-<meta name="description" content="A virtual office where 268 AI agents work by department. Click a room to meet the team.">
+<meta name="description" content="A virtual office where 42 AI agents work by department. Click a room to meet the team.">
 <style>
-:root{--bg:#fff;--fg:#111;--mute:#666;--line:#e6e6e6;--card:#fafafa;--accent:#f26b1d}
-@media(prefers-color-scheme:dark){:root{--bg:#0e0e0e;--fg:#f4f4f4;--mute:#999;--line:#2a2a2a;--card:#171717}}
+:root{--bg:#0e0e0e;--fg:#f4f4f4;--mute:#999;--line:#2a2a2a;--card:#171717;--accent:#f26b1d}
+@media(prefers-color-scheme:light){:root{--bg:#fff;--fg:#111;--mute:#666;--line:#e6e6e6;--card:#fafafa}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
 a{color:inherit}
@@ -63,6 +63,6 @@ footer{padding:10px 16px;font-size:12px;color:var(--mute);text-align:center;bord
 </div>
 <dialog id="card"><h2 id="cName"></h2><p class="small" id="cMeta"></p><p class="role" id="cRole"></p><p id="cDesc"></p><pre id="cSetup"></pre>
 <p><button class="btn" id="cCopy">Copy setup</button> <a class="btn ghost" id="cSrc" target="_blank" rel="noopener">View source</a> <button class="btn ghost" id="cClose">Close</button></p></dialog>
-<footer>Agents from <a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a> (MIT). The office is mine.</footer>
+<footer>Agents are my own, in <a href="https://github.com/ervenderr/creator-hub/tree/main/agents" target="_blank" rel="noopener">ervenderr/creator-hub</a>, inspired by <a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a> (MIT).</footer>
 <script type="module" src="office.js"></script>
 </body></html>

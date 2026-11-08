@@ -46,5 +46,5 @@ for (const from of origins) for (const to of targets) {
   assert.deepEqual([pts.at(-1).x, pts.at(-1).z], [to.x, to.z], "path must end on the spot");
 }
 // hall lines sit in the gaps
-assert.ok(Math.abs(hallX(2)) < 1e-9 && Math.abs(hallZ(2)) < 1e-9);
+assert.ok(Math.abs(hallX(2)) < 1e-9 && Math.abs(hallZ(1) + hallZ(2)) < 1e-9);
 console.log(`ok: ${all.size} rooms, ${paths} paths, ${spots.meeting.length} meeting seats, ${spots.break.length} break spots, ${spots.me.length} office spots`);

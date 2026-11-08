@@ -5,19 +5,19 @@
 // Desk rows are paired back-to-back (pods) with a lane between pods, so people can stand up, walk out
 // along a lane and leave the room through its east side.
 
-export const CELL = 12, GAP = 1.5, GRID_COLS = 4, GRID_ROWS = 4;
+export const CELL = 12, GAP = 1.5, GRID_COLS = 4, GRID_ROWS = 3;
 export const TOTAL_W = GRID_COLS * CELL + (GRID_COLS - 1) * GAP;
 export const TOTAL_D = GRID_ROWS * CELL + (GRID_ROWS - 1) * GAP;
 
-// Crowded departments get two cells; meeting and break rooms one. 13 rooms fill the 4x4 grid exactly.
+// One cell per department; my office takes two. 12 rooms fill the 4x3 grid exactly.
 const DEPT_SLOTS = {
-  marketing: [2, 0, 1], engineering: [0, 1, 2], security: [2, 1, 1], geo: [3, 1, 1], specialists: [0, 2, 2],
-  design: [2, 2, 1], sales: [3, 2, 1], ops: [0, 3, 1], pm: [1, 3, 1], qa: [2, 3, 1],
+  engineering: [2, 0, 1], specialists: [0, 1, 1], security: [1, 1, 1], design: [2, 1, 1], marketing: [3, 1, 1],
+  qa: [0, 2, 1], pm: [1, 2, 1], ops: [2, 2, 1],
 };
 export const SPECIAL = {
   me: { col: 0, row: 0, span: 2, label: "Ervenderr's office", color: "#f26b1d" },
   meeting: { col: 3, row: 0, span: 1, label: "Meeting room", color: "#8b5cf6" },
-  break: { col: 3, row: 3, span: 1, label: "Break room", color: "#f59e0b" },
+  break: { col: 3, row: 2, span: 1, label: "Break room", color: "#f59e0b" },
 };
 
 const LANE = 0.9, PAIR = 2.1, MAX_PAIRS = 3, PITCH_MIN = 1.4, PITCH_MAX = 2.0, EDGE = 0.6;
