@@ -27,7 +27,7 @@ def parse(path):
     meta = {}
     for line in m.group(1).splitlines():
         k, _, v = line.partition(":")
-        meta[k.strip()] = v.strip()
+        meta[k.strip()] = v.strip().strip("\"")
     for key in ("name", "description", "room", "vibe"):
         if not meta.get(key):
             raise SystemExit(f"{path.name}: missing {key}")
