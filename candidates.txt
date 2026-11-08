@@ -1,0 +1,109 @@
+agent-reach — MUST USE when user wants to research/search/look up/find anything on the internet — e.g. "research this topic"
+animate — Build an animation from scratch, making the decisions in the order that determines whether it feels right — sh
+animation-performance — Keep web animations inside the frame budget — animate composite-only properties, keep motion off the main thre
+animation-vocabulary — Reverse-lookup glossary that turns a vague description of a web animation or motion effect into its exact term
+app-showcase-video — Build a polished vertical (9:16, ~30s) showcase/promo video of an app or system from its existing screenshots,
+archify — Create validated architecture, workflow, sequence, data-flow, lifecycle/state, ERD, class, tree, timeline, and
+bootstrap-project — Set up Claude Code for a new or existing repo: CLAUDE.md, permissions, hooks, MCP servers, skills and a review
+break-ui — Try to break a piece of UI by feeding it worst-case data — long names, unbreakable emails, one-letter names, m
+browser-use — Direct browser control via CDP for web interaction: automation, scraping, testing, screenshots, and site/app w
+caveman — Switch to terse, token-efficient communication mode. Use when the user asks for caveman mode, compressed outpu
+emil-design-eng — This skill encodes Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the inv
+find-animation-opportunities — Search a codebase or UI for places that don't animate but should, and reject everything that shouldn't. Read-o
+general-video — Author or edit a custom HyperFrames composition when no specialized workflow fits, or when BRIEF.md sets flow:
+gsd-add-tests — Generate tests for a completed phase based on UAT criteria and implementation
+gsd-ai-integration-phase — Generate an AI-SPEC.md design contract for phases that involve building AI systems.
+gsd-audit-fix — Autonomous audit-to-fix pipeline — find issues, classify, fix, test, commit
+gsd-audit-milestone — Audit milestone completion against original intent before archiving
+gsd-audit-uat — Cross-phase audit of all outstanding UAT and verification items
+gsd-autonomous — Run all remaining phases autonomously — discuss→plan→execute per phase
+gsd-capture — Capture ideas, tasks, notes, and seeds to their destination
+gsd-cleanup — Archive accumulated phase directories from completed milestones
+gsd-code-review — Review source files changed during a phase for bugs, security issues, and code quality problems
+gsd-complete-milestone — Archive completed milestone and prepare for next version
+gsd-config — Configure GSD settings — workflow toggles, advanced knobs, integrations, and model profile
+gsd-debug — Systematic debugging with persistent state across context resets
+gsd-discuss-phase — Gather phase context through adaptive questioning before planning.
+gsd-docs-update — Generate or update project documentation verified against the codebase
+gsd-eval-review — Audit an executed AI phase's evaluation coverage and produce an EVAL-REVIEW.md remediation plan.
+gsd-execute-phase — Execute all plans in a phase with wave-based parallelization
+gsd-explore — Socratic ideation and idea routing — think through ideas before committing to plans
+gsd-extract-learnings — Extract decisions, lessons, patterns, and surprises from completed phase artifacts
+gsd-fast — Execute a trivial task inline — no subagents, no planning overhead
+gsd-forensics — Post-mortem investigation for failed GSD workflows — diagnoses what went wrong.
+gsd-graphify — Build, query, and inspect the project knowledge graph in .planning/graphs/
+gsd-health — Diagnose planning directory health and optionally repair issues
+gsd-help — Show available GSD commands and usage guide
+gsd-import — Ingest external plans with conflict detection against project decisions before writing anything.
+gsd-inbox — Triage and review open GitHub issues and PRs against project templates and contribution guidelines.
+gsd-ingest-docs — Bootstrap or merge a .planning/ setup from existing ADRs, PRDs, SPECs, and docs in a repo.
+gsd-manager — Interactive command center for managing multiple phases from one terminal
+gsd-map-codebase — Analyze codebase with parallel mapper agents to produce .planning/codebase/ documents
+gsd-milestone-summary — Generate a comprehensive project summary from milestone artifacts for team onboarding and review
+gsd-mvp-phase — Plan a phase as a vertical MVP slice — user story, SPIDR splitting, then plan-phase
+gsd-new-milestone — Start a new milestone cycle — update PROJECT.md and route to requirements
+gsd-new-project — Initialize a new project with deep context gathering and PROJECT.md
+gsd-ns-context — codebase intelligence | map graphify docs learnings
+gsd-ns-ideate — exploration capture | explore sketch spike spec capture
+gsd-ns-manage — config workspace | workstreams thread update ship inbox
+gsd-ns-project — project lifecycle | milestones audits summary
+gsd-ns-review — quality gates | code review debug audit security eval ui
+gsd-ns-workflow — workflow | discuss plan execute verify phase progress
+gsd-pause-work — Create context handoff when pausing work mid-phase
+gsd-phase — CRUD for phases in ROADMAP.md — add, insert, remove, or edit phases
+gsd-plan-phase — Create detailed phase plan (PLAN.md) with verification loop
+gsd-plan-review-convergence — Cross-AI plan convergence loop — replan with review feedback until no HIGH concerns remain.
+gsd-pr-branch — Create a clean PR branch by filtering out .planning/ commits — ready for code review
+gsd-profile-user — Generate developer behavioral profile and create Claude-discoverable artifacts
+gsd-progress — Check progress, advance workflow, or dispatch freeform intent — the unified GSD situational command
+gsd-quick — Execute a quick task with GSD guarantees (atomic commits, state tracking) but skip optional agents
+gsd-resume-work — Resume work from previous session with full context restoration
+gsd-review — Request cross-AI peer review of phase plans from external AI CLIs
+gsd-review-backlog — Review and promote backlog items to active milestone
+gsd-secure-phase — Retroactively verify threat mitigations for a completed phase
+gsd-settings — Configure GSD workflow toggles and model profile
+gsd-ship — Create PR, run review, and prepare for merge after verification passes
+gsd-sketch — Sketch UI/design ideas with throwaway HTML mockups, or propose what to sketch next (frontier mode)
+gsd-spec-phase — Clarify WHAT a phase delivers with ambiguity scoring; produces a SPEC.md before discuss-phase.
+gsd-spike — Spike an idea through experiential exploration, or propose what to spike next (frontier mode)
+gsd-stats — Display project statistics — phases, plans, requirements, git metrics, and timeline
+gsd-surface — Toggle which skills are surfaced — apply a profile, list, or disable a cluster without reinstall
+gsd-thread — Manage persistent context threads for cross-session work
+gsd-ui-phase — Generate UI design contract (UI-SPEC.md) for frontend phases
+gsd-ui-review — Retroactive 6-pillar visual audit of implemented frontend code
+gsd-ultraplan-phase — [BETA] Offload plan phase to Claude Code's ultraplan cloud; review in browser and import back.
+gsd-undo — Safe git revert. Roll back phase or plan commits using the phase manifest with dependency checks.
+gsd-update — Update GSD to latest version with changelog display
+gsd-validate-phase — Retroactively audit and fill Nyquist validation gaps for a completed phase
+gsd-verify-work — Validate built features through conversational UAT
+gsd-workspace — Manage GSD workspaces — create, list, or remove isolated workspace environments
+gsd-workstreams — Manage parallel workstreams — list, create, switch, status, progress, complete, and resume
+gstack — Apply structured AI engineering team roles to software development work. Use when building, reviewing, shippin
+humanizer — Remove signs of AI-generated writing from text. Use when editing or reviewing text to make it sound more natur
+hyperframes — Read first to make, edit, animate or render any video with HyperFrames (HTML rendered to video), including lau
+hyperframes-animation — All animation knowledge for HyperFrames — atomic motion rules, multi-phase scene blueprints, scene transitions
+hyperframes-audio — Use when audio already placed in a HyperFrames composition needs to be mixed: fade-in/fade-out, crossfade, tra
+hyperframes-cli — The HyperFrames CLI by job - scaffold, check, look at frames, edit the timeline, preview, render locally or in
+hyperframes-core — The HyperFrames composition contract — build one renderable project. Use for composition structure, the `data-
+hyperframes-creative — Non-animation creative direction for HyperFrames videos. Use for design spec (frame.md / design.md) handling, 
+hyperframes-keyframes — Use when a HyperFrames composition needs a punch-in, punch-out, zoom, reframe, Ken Burns treatment, camera mov
+hyperframes-registry — About 450 ready-made HyperFrames blocks and components installed as editable source - transitions, overlays, t
+hyperframes-studio — Use when working with a person on a HyperFrames project in Studio: first, whether their message asks for a cha
+impeccable — Use when the user wants to design, redesign, shape, critique, audit, polish, simplify, harden, animate, or oth
+improve-animations — Survey a codebase's animation and motion code as a senior motion advisor, then produce a prioritized audit and
+media-use — Get or make any media for a HyperFrames video - music, sound effects, images, icons, logos, voiceover, avatar 
+mindpalace — Apply structured memory management to prevent context overflow in long AI agent sessions. Use when a conversat
+review-animations — Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering phi
+session-handover — Auto-MindPalace at context limit. Detects when a session is running long, writes a structured handover block c
+setup-project — Pick only the agents and plugins a new project needs and load just those. Use at the start of a project, or wh
+trader-alerts — Price Alerts. Rings when a price target, a stop or the opening bell hits: above / below / stop rules, percent 
+trader-analyst — The Earnings Analyst. Reads a company's reported numbers straight from SEC EDGAR (XBRL company facts from its 
+trader-broker — Order Executor. Places APPROVED orders through your brokerage connector, one at a time, and never without your
+trader-budget — Budget Manager. Sizes every position to your budget before anything is bought: keeps a cash buffer, caps any o
+trader-copycat — The Reverse Engineer. Reads a famous investor's public SEC filings (the quarterly 13F-HR, plus Form 4 if you w
+trader-news — The News Monitor. Watches breaking market news and SEC filings for the stocks you hold (or are about to copy):
+trader-pelosi — The Pelosi Tracker. Watches the stock trades members of Congress must disclose under the STOCK Act: reads the 
+trader-rebalance — Rebalancer. Brings the portfolio back to its target weights when it drifts: values every holding at current pr
+trader-risk — Risk Manager. Checks every proposed order against your limits before it can reach the broker and blocks anythi
+trader-screener — The Stock Screener. Checks a list of companies against the user's own rules (revenue growth, margins, EPS, P/E
+trader-tax — Tax Optimizer. Tracks cost-basis lots for every position (FIFO, highest cost first, or specific lots), shows u

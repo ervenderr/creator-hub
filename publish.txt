@@ -1,0 +1,17 @@
+# `name` = full SKILL.md (yours). `name | url` = description + link only (third-party).
+bootstrap-project
+setup-project
+session-handover
+break-ui
+animate
+animation-performance
+animation-vocabulary
+find-animation-opportunities
+improve-animations
+review-animations
+agent-reach
+caveman | https://github.com/juliusbrussee/caveman
+gstack | https://github.com/garrytan/gstack
+mindpalace | https://github.com/whiterabb17/mindpalace
+browser-use | https://browser-use.com
+bang-motion | https://github.com/bangtutorial/bang-motion | Agent skill for browser motion graphics: openers, promos, kinetic typography and explainers that move like video, built as a single index.html. By bangtutorial, MIT licensed.

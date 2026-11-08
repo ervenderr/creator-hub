@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ervenderr | AI</title>
+<script>document.documentElement.classList.add("js")</script>
+<meta name="description" content="Free AI workflows every week, plus The Lab: agents that install in the AI you already use.">
+<style>
+:root{--bg:#fff;--fg:#111;--mute:#666;--line:#e6e6e6;--card:#fafafa;--accent:#f26b1d}
+@media(prefers-color-scheme:dark){:root{--bg:#0e0e0e;--fg:#f4f4f4;--mute:#999;--line:#2a2a2a;--card:#171717}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:inherit}.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:5}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:56px;gap:12px}
+nav b{font-weight:700}nav .links{display:flex;gap:16px;align-items:center;font-size:14px}
+@media(max-width:600px){nav .links a:not(.btn){display:none}}
+.btn{display:inline-block;background:var(--fg);color:var(--bg);border:0;border-radius:10px;padding:12px 20px;font:600 15px inherit;font-family:inherit;text-decoration:none;cursor:pointer}
+.tour{display:block;width:100%;max-width:760px;margin:20px auto;border:1px solid var(--line);border-radius:14px}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line)}
+section{padding:64px 0;border-bottom:1px solid var(--line)}
+h1{font-size:clamp(36px,7vw,64px);line-height:1.05;letter-spacing:-.03em;margin:0 0 16px}
+h2{font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0 0 8px}
+.dot{color:var(--accent)}.eyebrow{font:600 12px ui-monospace,monospace;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+.lead{color:var(--mute);max-width:560px}.center{text-align:center}.center .lead{margin:0 auto 24px}
+form.inline{display:flex;gap:8px;max-width:460px;margin:24px auto 8px;flex-wrap:wrap}
+input,select,textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+form.inline input{flex:1;min-width:200px;width:auto}
+.small{font-size:13px;color:var(--mute)}.msg{font-size:15px;font-weight:600;color:var(--accent);min-height:22px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));margin-top:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.card:hover{border-color:var(--accent)}.card code{font:600 14px ui-monospace,monospace}.card p{margin:6px 0 0;color:var(--mute);font-size:14px}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.stat{border:1px solid var(--line);border-radius:12px;padding:16px}.stat b{display:block;font-size:28px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.row small{color:var(--mute)}
+.two{display:grid;gap:24px;grid-template-columns:1fr 1fr}@media(max-width:700px){.two{grid-template-columns:1fr}}
+label{display:block;font-size:14px;margin:12px 0 4px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--fg);max-width:600px;width:calc(100% - 32px);padding:24px}
+dialog::backdrop{background:#0008}pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13px}
+footer{padding:32px 0;text-align:center}
+/* motion: transform/opacity only; everything is off under prefers-reduced-motion */
+.hero{position:relative;overflow:hidden}.hero .wrap{position:relative;z-index:1}
+.scene{position:absolute;inset:0;perspective:1100px;pointer-events:none;opacity:.45}
+.stage{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out}
+.pane{position:absolute;width:210px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 20px 50px #0003;animation:float 7s ease-in-out infinite}
+.pane code{font:600 13px ui-monospace,monospace}
+.p1{left:4%;top:12%;transform:translateZ(80px) rotateY(18deg) rotateX(6deg)}
+.p2{right:3%;top:50%;transform:translateZ(140px) rotateY(-20deg) rotateX(4deg);animation-delay:-2s}
+.p3{left:6%;bottom:4%;transform:translateZ(20px) rotateY(12deg) rotateX(-6deg);animation-delay:-4s}
+@keyframes float{50%{translate:0 -12px}}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%}
+.scene.gl{opacity:.95}.scene.gl .stage{display:none}
+@media(max-width:700px){.scene{display:none}}
+.card{transition:transform .15s ease-out,border-color .15s}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease-out,transform .5s ease-out}.js .reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.scene{display:none}.pane{animation:none}.card{transition:none}.js .reveal{opacity:1;transform:none;transition:none}}
+.vgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin:24px 0}
+.vgrid a{text-decoration:none;font-size:14px}.vgrid img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--card);display:block;margin-bottom:6px}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>Ervenderr <span class="dot">|</span> AI</b>
+<div class="links"><a href="#lab">The Lab</a><a href="office.html">Virtual office</a><a href="#free">Free workflows</a><a href="#tools">Tools</a><a href="#contact">Contact</a>
+</div></div></nav>
+
+<section class="hero"><div class="scene" aria-hidden="true"><div class="stage">
+<div class="pane p1"><code>/plan-my-day</code></div><div class="pane p2"><code>/animate</code></div><div class="pane p3"><code>/session-handover</code></div>
+</div></div><div class="wrap center">
+<h1>Steal my AI workflows.<br>Save hours every week<span class="dot">.</span></h1>
+<p class="lead">Make content faster, build apps without code and clear your busywork. I test the AI tools, then send you the exact workflows that work.</p>
+<form class="inline" data-form="subscribe"><input type="email" name="email" placeholder="Email address" required aria-label="Email address"><div class="cf-turnstile" data-sitekey="0x4AAAAAAF3s809K5EtWtclL" data-error-callback="tsError" data-appearance="interaction-only"></div><button class="btn">Subscribe</button></form>
+<div class="msg" aria-live="polite"></div><div class="small">Free every week · no spam</div>
+<p style="margin-top:18px"><a class="btn ghost" href="office.html">See my virtual office →</a></p>
+</div></section>
+
+<section id="lab"><div class="wrap center">
+<div class="eyebrow">The Lab</div>
+<h1>Get hours back with an AI version of me<span class="dot">.</span></h1>
+<p class="lead">My agents install in the AI you already use. Tell it what you do and it sets up your workflows.</p>
+<input id="q" type="search" placeholder="Search free agents…" aria-label="Search agents" style="max-width:360px">
+<div class="small" id="count" style="margin-top:8px">Free. No sign-up.</div>
+<div class="grid" id="agents"></div>
+</div></section>
+
+<section><div class="wrap"><div class="eyebrow">At a glance</div>
+<div class="stats" style="margin-top:16px">
+<div class="stat"><small>YouTube</small><b><a href="https://www.youtube.com/@builtbyagents12" target="_blank" rel="noopener">Built by Agents</a></b>animated sketches</div>
+<div class="stat"><small>Newsletter</small><b>New</b>be one of the first</div>
+<div class="stat"><small>The Lab</small><b id="agentCount">0</b>AI agents inside</div></div></div></section>
+
+<section id="office"><div class="wrap center"><div class="eyebrow">The Office</div><h2>Walk through my virtual office.</h2>
+<p class="lead">A 3D office where 268 agents work by department. They walk between rooms, grab coffee and hold meetings. Click any agent to read what they do and copy their setup.</p>
+<a href="office.html" aria-label="Open the virtual office"><video class="tour" src="office-tour.mp4" poster="office-tour.jpg" autoplay muted loop playsinline preload="metadata"></video></a>
+<p><a class="btn" href="office.html">See my virtual office →</a></p></div></section>
+
+<section id="free"><div class="wrap"><div class="eyebrow">01 From my videos</div><h2>Free workflows.</h2>
+<p class="lead">Each one is open source and comes with the exact setup. Copy it into your AI and go.</p>
+<div id="workflows"></div></div></section>
+
+<section id="videos"><div class="wrap"><div class="eyebrow">From the channel</div><h2>Built by Agents.</h2>
+<p class="lead">Animated Kit and Sage sketches that explain how everyday things work. Every one is made end to end by AI agents.</p>
+<div class="vgrid" id="videoGrid"></div>
+<p><a class="btn ghost" href="https://www.youtube.com/@builtbyagents12" target="_blank" rel="noopener">Watch all on YouTube →</a></p></div></section>
+
+<section id="tools"><div class="wrap"><div class="eyebrow">02 My stack</div><h2>What I use.</h2>
+<p class="lead">The tools behind the channel and the workflows above.</p><div id="toolList"></div></div></section>
+
+<section><div class="wrap"><div class="eyebrow">03 Where to find me</div><h2>Follow the build.</h2><div id="socials"></div></div></section>
+
+<section id="contact"><div class="wrap two">
+<div><div class="eyebrow">04 Get in touch</div><h2>Let's talk.</h2><p class="lead">Brand deals, podcasts, speaking, or a question about something I built. I usually reply within a day.</p></div>
+<form data-form="contact">
+<label>Name<input name="name" required></label><label>Email<input type="email" name="email" required></label>
+<label>Topic<select name="topic"><option>Brand partnership / sponsorship</option><option>Podcast / press / speaking</option><option>AI build for my company</option><option>Something else</option></select></label>
+<label>Message<textarea name="message" rows="4" required></textarea></label>
+<div class="cf-turnstile" data-sitekey="0x4AAAAAAF3s809K5EtWtclL" data-error-callback="tsError" data-appearance="interaction-only"></div><p><button class="btn">Send it</button></p><div class="msg" aria-live="polite"></div></form>
+</div></section>
+<footer class="small">© <span id="yr"></span> Ervenderr | AI</footer>
+
+<dialog id="dlg"><h2 id="dTitle"></h2><p class="lead" id="dDesc"></p><pre id="dBody"></pre>
+<p><button class="btn" id="copy">Copy setup</button> <button class="btn ghost" id="close">Close</button></p></dialog>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="app.js"></script>
+<script type="module" src="scene.js"></script>
+</body></html>
