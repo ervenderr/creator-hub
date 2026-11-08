@@ -1,0 +1,213 @@
+{
+ "repo": "https://github.com/ervenderr/creator-hub",
+ "items": [
+  {
+   "id": "approved-post-publisher",
+   "name": "Approved post publisher",
+   "category": "Social",
+   "desc": "Publishes only the sheet rows you marked approved, once, then marks them posted.",
+   "guardrails": "Posts only rows with status = approved, and writes status = posted right after to prevent duplicates.",
+   "steps": [
+    "Schedule",
+    "Get approved rows",
+    "Approved?",
+    "Publish",
+    "Mark posted"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/approved-post-publisher.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/approved-post-publisher.json"
+  },
+  {
+   "id": "daily-research-brief",
+   "name": "Daily research brief",
+   "category": "Research",
+   "desc": "Reads your chosen feeds each morning and sends the five items worth your time, each with its link.",
+   "guardrails": "Every item keeps its original link so you can verify. The model picks, it does not rewrite facts.",
+   "steps": [
+    "Schedule",
+    "Read feed",
+    "Collect",
+    "Pick five",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/daily-research-brief.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/daily-research-brief.json"
+  },
+  {
+   "id": "deploy-failure-alert",
+   "name": "Deploy failure alert",
+   "category": "Dev",
+   "desc": "Receives a CI or deploy webhook and sends a plain summary of what failed, with a link.",
+   "guardrails": "Strips tokens and long logs before alerting. Sends only to your own chat.",
+   "steps": [
+    "Webhook",
+    "Failed?",
+    "Clean",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/deploy-failure-alert.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/deploy-failure-alert.json"
+  },
+  {
+   "id": "draft-replies-for-approval",
+   "name": "Draft replies for approval",
+   "category": "Email",
+   "desc": "Writes a reply draft in Gmail for each new email and pings you. It never sends.",
+   "guardrails": "Output is a Gmail draft only. Sending stays a human click.",
+   "steps": [
+    "New email",
+    "Draft reply",
+    "Create draft",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/draft-replies-for-approval.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/draft-replies-for-approval.json"
+  },
+  {
+   "id": "github-issue-triage",
+   "name": "GitHub issue triage",
+   "category": "Dev",
+   "desc": "Labels new GitHub issues (bug, feature, question) and comments with what is missing. It never closes anything.",
+   "guardrails": "Adds a label and one comment only. Issue text is treated as untrusted data.",
+   "steps": [
+    "Webhook",
+    "New issue?",
+    "Classify",
+    "Add label"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/github-issue-triage.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/github-issue-triage.json"
+  },
+  {
+   "id": "grounded-cold-outreach",
+   "name": "Grounded cold outreach",
+   "category": "Sales",
+   "desc": "Reads each lead's real website and drafts an email using only what is on the page. Thin sites go to a human.",
+   "guardrails": "If the page has under 300 characters of text, no draft is written and the row is flagged for review. Nothing is sent.",
+   "steps": [
+    "Schedule",
+    "Get new leads",
+    "Fetch site",
+    "Extract text",
+    "Enough text?",
+    "Write draft",
+    "Save draft"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/grounded-cold-outreach.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/grounded-cold-outreach.json"
+  },
+  {
+   "id": "inbox-triage-digest",
+   "name": "Inbox triage digest",
+   "category": "Email",
+   "desc": "Every morning, sorts unread email into urgent, needs reply, FYI and junk, then sends one short digest to Telegram.",
+   "guardrails": "Reads only subject, sender and the first 500 characters. It never replies, deletes or labels anything.",
+   "steps": [
+    "Schedule",
+    "Get unread",
+    "Trim to metadata",
+    "Classify",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/inbox-triage-digest.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/inbox-triage-digest.json"
+  },
+  {
+   "id": "phishing-check",
+   "name": "Phishing check",
+   "category": "Security",
+   "desc": "Scores each new email for phishing from its headers, links and wording, then alerts you only on risky ones.",
+   "guardrails": "Never opens links or attachments. Only extracts link text and domains for the model to judge.",
+   "steps": [
+    "New email",
+    "Extract signals",
+    "Score risk",
+    "Parse",
+    "Risky?",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/phishing-check.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/phishing-check.json"
+  },
+  {
+   "id": "receipt-extractor",
+   "name": "Receipt extractor",
+   "category": "Finance",
+   "desc": "Pulls date, vendor and total from emailed receipts into a sheet, and flags anything it is unsure about.",
+   "guardrails": "Writes rows with a confidence flag. Low-confidence rows are marked for manual check, never guessed.",
+   "steps": [
+    "New email",
+    "Extract",
+    "Parse",
+    "Append row"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/receipt-extractor.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/receipt-extractor.json"
+  },
+  {
+   "id": "support-form-triage",
+   "name": "Support form triage",
+   "category": "Support",
+   "desc": "Scores each support form submission for priority, logs it, and pings you on urgent ones.",
+   "guardrails": "Adds a priority and one-line summary. It does not reply to the customer.",
+   "steps": [
+    "Webhook",
+    "Prioritize",
+    "Parse",
+    "Log ticket",
+    "Urgent?",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/support-form-triage.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/support-form-triage.json"
+  },
+  {
+   "id": "uptime-watch",
+   "name": "Uptime watch",
+   "category": "Ops",
+   "desc": "Checks your sites every 5 minutes and alerts once when one goes down, and once when it recovers.",
+   "guardrails": "Keeps state so it alerts on change, not every 5 minutes.",
+   "steps": [
+    "Schedule",
+    "Ping site",
+    "Detect change",
+    "Changed?",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/uptime-watch.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/uptime-watch.json"
+  },
+  {
+   "id": "video-to-content-pack",
+   "name": "Video to content pack",
+   "category": "Content",
+   "desc": "When a new video appears in a feed, drafts a title, a post and a short thread into a review sheet.",
+   "guardrails": "Drafts land in a sheet with status 'draft'. Nothing is posted automatically.",
+   "steps": [
+    "Schedule",
+    "Read feed",
+    "Only new",
+    "Draft content",
+    "Queue for review"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/video-to-content-pack.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/video-to-content-pack.json"
+  },
+  {
+   "id": "weekly-metrics-summary",
+   "name": "Weekly metrics summary",
+   "category": "Ops",
+   "desc": "Every Monday, reads your tracking sheet, computes the week-on-week change, and sends a short plain-language summary.",
+   "guardrails": "The math is done in code. The model only words the result and cannot change the numbers.",
+   "steps": [
+    "Schedule",
+    "Read metrics",
+    "Compute",
+    "Word it",
+    "Telegram"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/weekly-metrics-summary.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/weekly-metrics-summary.json"
+  }
+ ]
+}

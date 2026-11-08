@@ -1,0 +1,171 @@
+{
+ "name": "Video to content pack",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 */3 * * *"
+      }
+     ]
+    }
+   },
+   "id": "video-to-content-pack-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=REPLACE_ME"
+   },
+   "id": "video-to-content-pack-1",
+   "name": "Read feed",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const s=$getWorkflowStaticData('global');s.seen=s.seen||[];const out=$input.all().filter(i=>!s.seen.includes(i.json.link));s.seen=[...s.seen,...out.map(i=>i.json.link)].slice(-200);return out;"
+   },
+   "id": "video-to-content-pack-2",
+   "name": "Only new",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Write one post and a 4-part thread from this video title and summary. Plain, no hype, no invented facts.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{$json.title + '\\\\n' + $json.contentSnippet}}\"}]}"
+   },
+   "id": "video-to-content-pack-3",
+   "name": "Draft content",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Sheet1"
+    }
+   },
+   "id": "video-to-content-pack-4",
+   "name": "Queue for review",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Video to content pack\nWhen a new video appears in a feed, drafts a title, a post and a short thread into a review sheet.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Drafts land in a sheet with status 'draft'. Nothing is posted automatically.\n\nNo secrets are stored in this file.",
+    "height": 200,
+    "width": 520
+   },
+   "id": "video-to-content-pack-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    60
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Read feed",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read feed": {
+   "main": [
+    [
+     {
+      "node": "Only new",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Only new": {
+   "main": [
+    [
+     {
+      "node": "Draft content",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Draft content": {
+   "main": [
+    [
+     {
+      "node": "Queue for review",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Content",
+  "description": "When a new video appears in a feed, drafts a title, a post and a short thread into a review sheet.",
+  "guardrails": "Drafts land in a sheet with status 'draft'. Nothing is posted automatically."
+ }
+}

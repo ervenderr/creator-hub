@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Automations | Ervenderr</title>
+<meta name="description" content="Original n8n workflows with approval steps and guardrails built in. Import one and go.">
+<style>
+:root{--bg:#0e0e0e;--fg:#f4f4f4;--mute:#999;--line:#2a2a2a;--card:#171717;--accent:#f26b1d}
+@media(prefers-color-scheme:light){:root{--bg:#fff;--fg:#111;--mute:#666;--line:#e6e6e6;--card:#fafafa}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:inherit}
+nav{border-bottom:1px solid var(--line);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:14px}
+nav b{font-weight:700}.dot{color:var(--accent)}
+main{max-width:960px;margin:0 auto;padding:32px 16px}
+h1{font-size:32px;margin:0 0 4px}.lead{color:var(--mute);margin:0 0 20px}
+#q{width:100%;font:15px system-ui,sans-serif;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.chip{background:none;border:1px solid var(--line);color:var(--fg);border-radius:999px;padding:4px 12px;font:13px system-ui,sans-serif;cursor:pointer}
+.chip.on{border-color:var(--accent);color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.card h2{font-size:17px;margin:0}.tag{font-size:12px;color:var(--accent);font-weight:600}
+.card p{margin:0;font-size:14px;color:var(--mute)}.card .g{color:var(--fg)}
+.steps{font-size:12px;color:var(--mute)}
+.row{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}
+.btn{background:var(--fg);color:var(--bg);border:0;border-radius:10px;padding:8px 14px;font:600 13px system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line)}
+footer{padding:14px 16px;font-size:12px;color:var(--mute);text-align:center;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<nav><b>Ervenderr <span class="dot">|</span> AI</b><a href="/">← Back to home</a></nav>
+<main>
+<h1>Automations</h1>
+<p class="lead">Original n8n workflows. Each one has a human approval step or a hard limit built in, and no secrets inside.</p>
+<input id="q" type="search" placeholder="Search automations…" aria-label="Search automations">
+<div class="chips" id="chips"></div>
+<div class="grid" id="grid"></div>
+</main>
+<footer>Mine, in <a href="https://github.com/ervenderr/creator-hub/tree/main/automations" target="_blank" rel="noopener">ervenderr/creator-hub</a>. Inspired by the categories in <a href="https://github.com/enescingoz/awesome-n8n-templates" target="_blank" rel="noopener">enescingoz/awesome-n8n-templates</a> (CC BY 4.0). Test each workflow before turning it on.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let all=[],cat="All";
+function render(){
+  const q=$("q").value.toLowerCase();
+  const list=all.filter(a=>(cat==="All"||a.category===cat)&&(a.name+a.desc+a.category).toLowerCase().includes(q));
+  $("grid").innerHTML=list.map(a=>`<div class="card"><span class="tag">${esc(a.category)}</span><h2>${esc(a.name)}</h2><p>${esc(a.desc)}</p><p class="g"><b>Guardrail:</b> ${esc(a.guardrails)}</p><p class="steps">${a.steps.map(esc).join(" → ")}</p><div class="row"><a class="btn" href="${esc(a.raw)}" download>Download JSON</a><button class="btn ghost" data-u="${esc(a.raw)}">Copy link</button><a class="btn ghost" href="${esc(a.source)}" target="_blank" rel="noopener">View source</a></div></div>`).join("")||"<p>No match.</p>";
+}
+fetch("automations.json").then(r=>r.json()).then(d=>{
+  all=d.items;
+  const cats=["All",...new Set(all.map(a=>a.category))];
+  $("chips").innerHTML=cats.map(c=>`<button class="chip${c===cat?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  render();
+});
+$("q").addEventListener("input",render);
+$("chips").addEventListener("click",e=>{const c=e.target.dataset.c;if(!c)return;cat=c;document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("on",b.dataset.c===c));render()});
+$("grid").addEventListener("click",e=>{const u=e.target.dataset.u;if(!u)return;navigator.clipboard.writeText(u).then(()=>{e.target.textContent="Copied";setTimeout(()=>e.target.textContent="Copy link",1500)})});
+</script>
+</body></html>

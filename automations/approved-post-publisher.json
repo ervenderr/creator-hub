@@ -1,0 +1,174 @@
+{
+ "name": "Approved post publisher",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "*/30 * * * *"
+      }
+     ]
+    }
+   },
+   "id": "approved-post-publisher-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "getAll",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Sheet1"
+    }
+   },
+   "id": "approved-post-publisher-1",
+   "name": "Get approved rows",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{$json.status==='approved'}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "approved-post-publisher-2",
+   "name": "Approved?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "REPLACE_ME_POSTING_ENDPOINT"
+   },
+   "id": "approved-post-publisher-3",
+   "name": "Publish",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "update",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Sheet1"
+    }
+   },
+   "id": "approved-post-publisher-4",
+   "name": "Mark posted",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Approved post publisher\nPublishes only the sheet rows you marked approved, once, then marks them posted.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Posts only rows with status = approved, and writes status = posted right after to prevent duplicates.\n\nNo secrets are stored in this file.",
+    "height": 200,
+    "width": 520
+   },
+   "id": "approved-post-publisher-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    60
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Get approved rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Get approved rows": {
+   "main": [
+    [
+     {
+      "node": "Approved?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Approved?": {
+   "main": [
+    [
+     {
+      "node": "Publish",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Publish": {
+   "main": [
+    [
+     {
+      "node": "Mark posted",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Social",
+  "description": "Publishes only the sheet rows you marked approved, once, then marks them posted.",
+  "guardrails": "Posts only rows with status = approved, and writes status = posted right after to prevent duplicates."
+ }
+}

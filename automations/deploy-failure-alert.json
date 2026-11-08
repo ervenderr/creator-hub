@@ -1,0 +1,125 @@
+{
+ "name": "Deploy failure alert",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "deploy-status",
+    "responseMode": "onReceived"
+   },
+   "id": "deploy-failure-alert-0",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{$json.body.status==='failed'}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "deploy-failure-alert-1",
+   "name": "Failed?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const b=$json.body;const log=String(b.log||'').replace(/(token|secret|key)[=:]\\s*\\S+/gi,'$1=[hidden]').slice(-800);return [{json:{app:b.app,url:b.url,log}}];"
+   },
+   "id": "deploy-failure-alert-2",
+   "name": "Clean",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Deploy failed: {{$json.app}}\n{{$json.url}}\n{{$json.log}}"
+   },
+   "id": "deploy-failure-alert-3",
+   "name": "Telegram",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Deploy failure alert\nReceives a CI or deploy webhook and sends a plain summary of what failed, with a link.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Strips tokens and long logs before alerting. Sends only to your own chat.\n\nNo secrets are stored in this file.",
+    "height": 200,
+    "width": 520
+   },
+   "id": "deploy-failure-alert-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    60
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Failed?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Failed?": {
+   "main": [
+    [
+     {
+      "node": "Clean",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clean": {
+   "main": [
+    [
+     {
+      "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Dev",
+  "description": "Receives a CI or deploy webhook and sends a plain summary of what failed, with a link.",
+  "guardrails": "Strips tokens and long logs before alerting. Sends only to your own chat."
+ }
+}
