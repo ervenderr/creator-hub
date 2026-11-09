@@ -476,6 +476,26 @@
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/receipt-extractor.json"
   },
   {
+   "id": "skycases-reorder-planner",
+   "name": "Skycases reorder planner",
+   "category": "Operations",
+   "desc": "Reads daily stock per SKU, corrects demand for stock-out days, proposes reorder quantities by lead time, and flags low stock, invoice cost increases and bad data (duplicate or missing EANs).",
+   "guardrails": "Proposes only. Founders approve every purchase.",
+   "steps": [
+    "Every morning",
+    "Read stock sheet",
+    "Plan and check data",
+    "Anything to report?",
+    "Email founders"
+   ],
+   "image": "automations/shots/skycases-reorder-planner.jpg",
+   "tags": [
+    "Branch"
+   ],
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/skycases-reorder-planner.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/skycases-reorder-planner.json"
+  },
+  {
    "id": "slack-standup-collector",
    "name": "Slack standup collector",
    "category": "Team",

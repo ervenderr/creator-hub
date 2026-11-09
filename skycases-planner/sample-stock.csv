@@ -1,0 +1,7 @@
+sku,ean,name,on_hand,inbound,inbound_eta_days,sold_28d,stockout_days_28d,season_factor,lead_days,carton_qty,agreed_cost,last_invoice_cost
+SC-CAB-BLK,8719000000011,Cabin suitcase 55cm black,120,0,0,280,0,1.2,70,6,24.5,24.5
+SC-CAB-NVY,8719000000028,Cabin suitcase 55cm navy,0,600,40,150,20,1.2,70,6,24.5,27.9
+SC-MED-BLK,8719000000035,Check-in 67cm black,900,0,0,200,0,1.0,70,4,38,38
+SC-LRG-GRY,8719000000042,Check-in 76cm grey,60,0,0,90,0,1.1,70,4,46,46
+SC-LRG-GRN,8719000000042,Check-in 76cm green,300,0,0,70,0,1.1,70,4,46,46.5
+SC-TAG-SET,,Luggage tag set,-5,0,0,40,0,1.0,45,50,1.2,1.2

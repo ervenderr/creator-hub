@@ -1,0 +1,154 @@
+{
+ "name": "Skycases reorder planner",
+ "nodes": [
+  {
+   "id": "every-morning",
+   "name": "Every morning",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    200
+   ],
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 7 * * 1-5"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "read-stock-sheet",
+   "name": "Read stock sheet",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    260,
+    200
+   ],
+   "parameters": {
+    "operation": "getAll",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "stock"
+    }
+   }
+  },
+  {
+   "id": "plan-and-check-data",
+   "name": "Plan and check data",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    200
+   ],
+   "parameters": {
+    "jsCode": "// Reorder planner: stock rows in, purchase proposals + alerts + data issues out.\nconst CFG = { windowDays: 28, safetyDays: 14, cycleDays: 60, lowCoverDays: 21, costTolerance: 0.05 };\nconst NUM = ['on_hand', 'inbound', 'inbound_eta_days', 'sold_28d', 'stockout_days_28d', 'season_factor', 'lead_days', 'carton_qty', 'agreed_cost', 'last_invoice_cost'];\n\nfunction plan(rows, cfg = CFG) {\n  const out = { proposals: [], alerts: [], dataIssues: [] };\n  const issue = (sku, msg) => out.dataIssues.push({ sku, msg });\n  const eans = {};\n  rows.forEach((r) => { if (r.ean) (eans[r.ean] = eans[r.ean] || []).push(r.sku); });\n  Object.entries(eans).forEach(([e, s]) => s.length > 1 && issue(s.join(' + '), `Same EAN ${e} on ${s.length} SKUs`));\n\n  for (const r of rows) {\n    if (!r.ean) issue(r.sku, 'Missing EAN');\n    const bad = NUM.filter((k) => r[k] === '' || r[k] == null || !(Number(r[k]) >= 0));\n    if (bad.length) { issue(r.sku, `Missing/negative: ${bad.join(', ')}`); continue; }\n    const n = Object.fromEntries(NUM.map((k) => [k, Number(r[k])]));\n    const sellable = cfg.windowDays - n.stockout_days_28d;\n    if (sellable <= 0 || n.carton_qty === 0) { issue(r.sku, 'No sellable days or carton_qty 0, cannot forecast'); continue; }\n\n    // Real demand = units sold per day the item was actually in stock, not per calendar day.\n    const daily = (n.sold_28d / sellable) * n.season_factor;\n    const cover = daily ? n.on_hand / daily : Infinity;\n    const position = n.on_hand + n.inbound;\n    const reorderPoint = daily * (n.lead_days + cfg.safetyDays);\n    const base = { sku: r.sku, name: r.name, daily: +daily.toFixed(2), cover_days: Number.isFinite(cover) ? Math.round(cover) : null };\n\n    if (position <= reorderPoint) {\n      const need = daily * (n.lead_days + cfg.safetyDays + cfg.cycleDays) - position;\n      const qty = Math.ceil(need / n.carton_qty) * n.carton_qty;\n      out.proposals.push({ ...base, qty, cost: Math.round(qty * n.agreed_cost), low_confidence: n.stockout_days_28d > cfg.windowDays / 2 });\n    }\n    if (cover < cfg.lowCoverDays && (n.inbound === 0 || n.inbound_eta_days > cover))\n      out.alerts.push({ ...base, type: 'low_stock', msg: `${Math.round(cover)}d of cover, ${n.inbound ? `inbound lands in ${n.inbound_eta_days}d` : 'nothing inbound'}` });\n    if (n.last_invoice_cost > n.agreed_cost * (1 + cfg.costTolerance))\n      out.alerts.push({ ...base, type: 'cost_increase', msg: `Invoiced ${n.last_invoice_cost} vs agreed ${n.agreed_cost} (+${Math.round((n.last_invoice_cost / n.agreed_cost - 1) * 100)}%)` });\n  }\n  return out;\n}\n\n\nconst r = plan($input.all().map((i) => i.json));\nconst L = (t, a, f) => a.length ? ['', t, ...a.map(f)] : [];\nconst body = [\n  ...L('PURCHASE PROPOSALS (needs founder approval)', r.proposals, (p) => `- ${p.sku} ${p.name}: order ${p.qty} (~EUR ${p.cost}), ${p.cover_days ?? '-'}d cover${p.low_confidence ? ' [low confidence: many stock-out days]' : ''}`),\n  ...L('ALERTS', r.alerts, (a) => `- ${a.sku} [${a.type}] ${a.msg}`),\n  ...L('DATA ISSUES', r.dataIssues, (d) => `- ${d.sku}: ${d.msg}`),\n].join('\\n');\nreturn [{ json: { ...r, count: r.proposals.length + r.alerts.length + r.dataIssues.length, subject: `Supply chain: ${r.proposals.length} to order, ${r.alerts.length} alerts, ${r.dataIssues.length} data issues`, body } }];"
+   }
+  },
+  {
+   "id": "anything-to-report-",
+   "name": "Anything to report?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    780,
+    200
+   ],
+   "parameters": {
+    "conditions": {
+     "number": [
+      {
+       "value1": "={{$json.count}}",
+       "operation": "larger",
+       "value2": 0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "email-founders",
+   "name": "Email founders",
+   "type": "n8n-nodes-base.emailSend",
+   "typeVersion": 2.1,
+   "position": [
+    1040,
+    100
+   ],
+   "parameters": {
+    "fromEmail": "",
+    "toEmail": "",
+    "subject": "={{$json.subject}}",
+    "emailFormat": "text",
+    "text": "={{$json.body}}"
+   }
+  }
+ ],
+ "connections": {
+  "Every morning": {
+   "main": [
+    [
+     {
+      "node": "Read stock sheet",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read stock sheet": {
+   "main": [
+    [
+     {
+      "node": "Plan and check data",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Plan and check data": {
+   "main": [
+    [
+     {
+      "node": "Anything to report?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Anything to report?": {
+   "main": [
+    [
+     {
+      "node": "Email founders",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    []
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Operations",
+  "description": "Reads daily stock per SKU, corrects demand for stock-out days, proposes reorder quantities by lead time, and flags low stock, invoice cost increases and bad data (duplicate or missing EANs).",
+  "guardrails": "Proposes only. Founders approve every purchase."
+ }
+}
