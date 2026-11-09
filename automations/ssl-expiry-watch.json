@@ -18,47 +18,60 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
+    0
    ]
   },
   {
    "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+    "jsCode": "return ['example.com','docs.example.com','api.example.com'].map(d=>({json:{domain:d}}));"
    },
    "id": "ssl-expiry-watch-1",
-   "name": "Validate input",
+   "name": "List domains",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
     260,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "batchSize": 1
+   },
+   "id": "ssl-expiry-watch-2",
+   "name": "Each domain",
+   "type": "n8n-nodes-base.splitInBatches",
+   "typeVersion": 3,
+   "position": [
+    520,
+    0
    ]
   },
   {
    "parameters": {
     "method": "GET",
-    "url": "https://REPLACE_ME-cert-checker.example.com"
+    "url": "REPLACE_ME_CERT_API"
    },
-   "id": "ssl-expiry-watch-2",
-   "name": "Check cert API",
+   "id": "ssl-expiry-watch-3",
+   "name": "Check certificate",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    520,
-    300
+    780,
+    0
    ]
   },
   {
    "parameters": {
     "jsCode": "const d=Math.floor((new Date($json.expires)-Date.now())/864e5);const s=$getWorkflowStaticData('global');const k=$json.domain;const recent=s[k]&&Date.now()-s[k]<6048e5;if(d<=21&&!recent)s[k]=Date.now();return [{json:{domain:k,days:d,alert:d<=21&&!recent}}];"
    },
-   "id": "ssl-expiry-watch-3",
+   "id": "ssl-expiry-watch-4",
    "name": "Days left",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    780,
-    300
+    1040,
+    0
    ]
   },
   {
@@ -72,13 +85,13 @@
      ]
     }
    },
-   "id": "ssl-expiry-watch-4",
+   "id": "ssl-expiry-watch-5",
    "name": "Alert?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
-    1040,
-    300
+    1300,
+    0
    ]
   },
   {
@@ -86,13 +99,35 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "={{$json.domain}} certificate expires in {{$json.days}} days"
    },
-   "id": "ssl-expiry-watch-5",
-   "name": "Telegram",
+   "id": "ssl-expiry-watch-6",
+   "name": "Warn me",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    1300,
-    300
+    1560,
+    0
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "ssl-expiry-watch-7",
+   "name": "Fine",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    1560,
+    200
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "ssl-expiry-watch-8",
+   "name": "All checked",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    780,
+    200
    ]
   },
   {
@@ -103,7 +138,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -117,12 +152,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## SSL expiry watch\nChecks your domains daily and warns 21 days before a certificate expires.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Read-only checks. Alerts once per domain per week.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## SSL expiry watch\nLoops over your domains daily, checks each certificate, and warns 21 days before expiry, at most once a week per domain.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Read-only checks. Repeat alerts are suppressed.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -132,7 +167,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
@@ -141,25 +176,43 @@
    "main": [
     [
      {
-      "node": "Validate input",
+      "node": "List domains",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Validate input": {
+  "List domains": {
    "main": [
     [
      {
-      "node": "Check cert API",
+      "node": "Each domain",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Check cert API": {
+  "Each domain": {
+   "main": [
+    [
+     {
+      "node": "All checked",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Check certificate",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Check certificate": {
    "main": [
     [
      {
@@ -185,7 +238,36 @@
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Warn me",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Fine",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Warn me": {
+   "main": [
+    [
+     {
+      "node": "Each domain",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fine": {
+   "main": [
+    [
+     {
+      "node": "Each domain",
       "type": "main",
       "index": 0
      }
@@ -209,7 +291,7 @@
  },
  "meta": {
   "category": "DevOps",
-  "description": "Checks your domains daily and warns 21 days before a certificate expires.",
-  "guardrails": "Read-only checks. Alerts once per domain per week."
+  "description": "Loops over your domains daily, checks each certificate, and warns 21 days before expiry, at most once a week per domain.",
+  "guardrails": "Read-only checks. Repeat alerts are suppressed."
  }
 }

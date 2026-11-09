@@ -18,20 +18,7 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "calendar-prep-brief-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -45,40 +32,84 @@
     "returnAll": false,
     "limit": 15
    },
-   "id": "calendar-prep-brief-2",
+   "id": "calendar-prep-brief-1",
    "name": "Today's events",
    "type": "n8n-nodes-base.googleCalendar",
    "typeVersion": 1.2,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
-    "jsCode": "return [{json:{list:$input.all().map(i=>i.json.summary+' at '+i.json.start?.dateTime).join('\\n')}}];"
+    "resource": "message",
+    "operation": "getAll",
+    "returnAll": false,
+    "limit": 20
+   },
+   "id": "calendar-prep-brief-2",
+   "name": "Recent mail from attendees",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    260,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "numberInputs": 2
    },
    "id": "calendar-prep-brief-3",
-   "name": "List",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
+   "name": "Join",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3,
+   "position": [
+    520,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"One short prep line per meeting. Use only the given data.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($input.all().map(i=>i.json))}}\"}]}"
+   },
+   "id": "calendar-prep-brief-4",
+   "name": "Write prep notes",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
    "position": [
     780,
-    300
+    0
    ]
   },
   {
    "parameters": {
     "chatId": "REPLACE_ME_CHAT_ID",
-    "text": "=Today:\n{{$json.list}}"
+    "text": "=Today:\n{{$json.content[0].text}}"
    },
-   "id": "calendar-prep-brief-4",
-   "name": "Telegram",
+   "id": "calendar-prep-brief-5",
+   "name": "Send brief",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
     1040,
-    300
+    0
    ]
   },
   {
@@ -89,7 +120,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -103,12 +134,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Calendar prep brief\nEach morning, lists today's meetings with who is in them and what you last discussed.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Uses only your own calendar and notes. Nothing is shared outside your chat.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Calendar prep brief\nEach morning, reads today's meetings and recent emails from attendees at the same time, and writes a one-line prep note per meeting.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Uses only your own calendar and mail. Nothing is shared outside your chat.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -118,7 +149,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
@@ -127,18 +158,12 @@
    "main": [
     [
      {
-      "node": "Validate input",
+      "node": "Today's events",
       "type": "main",
       "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
-   "main": [
-    [
+     },
      {
-      "node": "Today's events",
+      "node": "Recent mail from attendees",
       "type": "main",
       "index": 0
      }
@@ -149,18 +174,40 @@
    "main": [
     [
      {
-      "node": "List",
+      "node": "Join",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "List": {
+  "Recent mail from attendees": {
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Join",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Join": {
+   "main": [
+    [
+     {
+      "node": "Write prep notes",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Write prep notes": {
+   "main": [
+    [
+     {
+      "node": "Send brief",
       "type": "main",
       "index": 0
      }
@@ -184,7 +231,7 @@
  },
  "meta": {
   "category": "Productivity",
-  "description": "Each morning, lists today's meetings with who is in them and what you last discussed.",
-  "guardrails": "Uses only your own calendar and notes. Nothing is shared outside your chat."
+  "description": "Each morning, reads today's meetings and recent emails from attendees at the same time, and writes a one-line prep note per meeting.",
+  "guardrails": "Uses only your own calendar and mail. Nothing is shared outside your chat."
  }
 }

@@ -18,20 +18,7 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "invoice-overdue-reminder-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -48,26 +35,60 @@
      "value": "Sheet1"
     }
    },
-   "id": "invoice-overdue-reminder-2",
+   "id": "invoice-overdue-reminder-1",
    "name": "Read invoices",
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
-    "jsCode": "return $input.all().filter(i=>i.json.status==='unpaid'&&new Date(i.json.due)<new Date());"
+    "jsCode": "return $input.all().filter(i=>i.json.status==='unpaid'&&new Date(i.json.due)<new Date()).map(i=>({json:{...i.json,days_late:Math.floor((Date.now()-new Date(i.json.due))/864e5)}}));"
    },
-   "id": "invoice-overdue-reminder-3",
-   "name": "Overdue",
+   "id": "invoice-overdue-reminder-2",
+   "name": "Find overdue",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
+    520,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{$json.days_late>=30}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "invoice-overdue-reminder-3",
+   "name": "30+ days late?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
     780,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Invoice {{$json.number}} is {{$json.days_late}} days late."
+   },
+   "id": "invoice-overdue-reminder-4",
+   "name": "Escalate to me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    1040,
+    0
    ]
   },
   {
@@ -87,31 +108,31 @@
     },
     "sendBody": true,
     "specifyBody": "json",
-    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Write a polite 3-line payment reminder. Do not add fees or threats.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json)}}\"}]}"
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Write a polite 3-line payment reminder. No fees or threats.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json)}}\"}]}"
    },
-   "id": "invoice-overdue-reminder-4",
+   "id": "invoice-overdue-reminder-5",
    "name": "Draft reminder",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
     1040,
-    300
+    200
    ]
   },
   {
    "parameters": {
     "resource": "draft",
     "operation": "create",
-    "subject": "=Reminder: invoice {{$('Overdue').item.json.number}}",
+    "subject": "=Reminder: invoice {{$('Find overdue').item.json.number}}",
     "message": "={{$json.content[0].text}}"
    },
-   "id": "invoice-overdue-reminder-5",
+   "id": "invoice-overdue-reminder-6",
    "name": "Save draft",
    "type": "n8n-nodes-base.gmail",
    "typeVersion": 2.1,
    "position": [
     1300,
-    300
+    200
    ]
   },
   {
@@ -122,7 +143,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -136,12 +157,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Invoice overdue reminder\nFinds unpaid invoices past due and drafts a polite reminder for each, for you to send.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Drafts only. Never emails a client on its own.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Invoice overdue reminder\nFinds unpaid invoices past due. Very late ones (30+ days) escalate to you, the rest get a polite reminder draft.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Drafts only. It never emails a client on its own and never adds fees or threats.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -151,23 +172,12 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
  "connections": {
   "Schedule": {
-   "main": [
-    [
-     {
-      "node": "Validate input",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
    "main": [
     [
      {
@@ -182,15 +192,33 @@
    "main": [
     [
      {
-      "node": "Overdue",
+      "node": "Find overdue",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Overdue": {
+  "Find overdue": {
    "main": [
+    [
+     {
+      "node": "30+ days late?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "30+ days late?": {
+   "main": [
+    [
+     {
+      "node": "Escalate to me",
+      "type": "main",
+      "index": 0
+     }
+    ],
     [
      {
       "node": "Draft reminder",
@@ -228,7 +256,7 @@
  },
  "meta": {
   "category": "Finance",
-  "description": "Finds unpaid invoices past due and drafts a polite reminder for each, for you to send.",
-  "guardrails": "Drafts only. Never emails a client on its own."
+  "description": "Finds unpaid invoices past due. Very late ones (30+ days) escalate to you, the rest get a polite reminder draft.",
+  "guardrails": "Drafts only. It never emails a client on its own and never adds fees or threats."
  }
 }

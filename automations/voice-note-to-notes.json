@@ -13,20 +13,7 @@
    "typeVersion": 1.1,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "voice-note-to-notes-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -40,13 +27,44 @@
      ]
     }
    },
-   "id": "voice-note-to-notes-2",
+   "id": "voice-note-to-notes-1",
    "name": "My chat?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
+    260,
+    0
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "voice-note-to-notes-2",
+   "name": "Ignore stranger",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
     520,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{!!$json.message.voice}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "voice-note-to-notes-3",
+   "name": "Is voice?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    520,
+    200
    ]
   },
   {
@@ -54,13 +72,13 @@
     "method": "POST",
     "url": "REPLACE_ME_TRANSCRIBE_API"
    },
-   "id": "voice-note-to-notes-3",
+   "id": "voice-note-to-notes-4",
    "name": "Transcribe",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
     780,
-    300
+    200
    ]
   },
   {
@@ -80,15 +98,15 @@
     },
     "sendBody": true,
     "specifyBody": "json",
-    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Summarize and list to-dos. Keep the speaker's words.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{$json.text}}\"}]}"
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Summarize and list to-dos. Keep the speaker's words.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{$json.text||$json.message.text}}\"}]}"
    },
-   "id": "voice-note-to-notes-4",
+   "id": "voice-note-to-notes-5",
    "name": "Summarize",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
     1040,
-    300
+    200
    ]
   },
   {
@@ -96,13 +114,13 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "={{$json.content[0].text}}"
    },
-   "id": "voice-note-to-notes-5",
-   "name": "Telegram",
+   "id": "voice-note-to-notes-6",
+   "name": "Send notes",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
     1300,
-    300
+    200
    ]
   },
   {
@@ -113,7 +131,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -127,12 +145,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Voice note to notes\nSend a voice note to a Telegram bot and get back a clean summary and to-dos.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Only your own chat id is accepted; messages from anyone else are ignored.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Voice note to notes\nAccepts only your own chat. Voice notes are transcribed first, text goes straight to the summary, and you get notes and to-dos back.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Messages from anyone other than your chat id are ignored.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -142,23 +160,12 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
  "connections": {
   "Telegram trigger": {
-   "main": [
-    [
-     {
-      "node": "Validate input",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
    "main": [
     [
      {
@@ -173,7 +180,32 @@
    "main": [
     [
      {
+      "node": "Is voice?",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Ignore stranger",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Is voice?": {
+   "main": [
+    [
+     {
       "node": "Transcribe",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Summarize",
       "type": "main",
       "index": 0
      }
@@ -195,7 +227,7 @@
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Send notes",
       "type": "main",
       "index": 0
      }
@@ -219,7 +251,7 @@
  },
  "meta": {
   "category": "Telegram",
-  "description": "Send a voice note to a Telegram bot and get back a clean summary and to-dos.",
-  "guardrails": "Only your own chat id is accepted; messages from anyone else are ignored."
+  "description": "Accepts only your own chat. Voice notes are transcribed first, text goes straight to the summary, and you get notes and to-dos back.",
+  "guardrails": "Messages from anyone other than your chat id are ignored."
  }
 }

@@ -18,20 +18,7 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "nightly-backup-check-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -39,26 +26,26 @@
     "method": "GET",
     "url": "REPLACE_ME_BACKUP_LIST_URL"
    },
-   "id": "nightly-backup-check-2",
+   "id": "nightly-backup-check-1",
    "name": "List backups",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
     "jsCode": "const l=$json.files||[];const last=l.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];const ok=last&&Date.now()-new Date(last.date)<26*36e5&&last.size>1024;return [{json:{ok:!!ok,last:last||null}}];"
    },
-   "id": "nightly-backup-check-3",
+   "id": "nightly-backup-check-2",
    "name": "Verify",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    780,
-    300
+    520,
+    0
    ]
   },
   {
@@ -72,13 +59,74 @@
      ]
     }
    },
-   "id": "nightly-backup-check-4",
+   "id": "nightly-backup-check-3",
    "name": "Problem?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
+    780,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "amount": 10,
+    "unit": "minutes"
+   },
+   "id": "nightly-backup-check-4",
+   "name": "Wait 10 minutes",
+   "type": "n8n-nodes-base.wait",
+   "typeVersion": 1.1,
+   "position": [
     1040,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "REPLACE_ME_BACKUP_LIST_URL"
+   },
+   "id": "nightly-backup-check-5",
+   "name": "List again",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1300,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const l=$json.files||[];const last=l.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];const ok=last&&Date.now()-new Date(last.date)<26*36e5&&last.size>1024;return [{json:{ok:!!ok,last:last||null}}];"
+   },
+   "id": "nightly-backup-check-6",
+   "name": "Verify again",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1560,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{!$json.ok}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "nightly-backup-check-7",
+   "name": "Still a problem?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    1820,
+    0
    ]
   },
   {
@@ -86,13 +134,35 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "=Backup problem. Last file: {{JSON.stringify($json.last)}}"
    },
-   "id": "nightly-backup-check-5",
-   "name": "Telegram",
+   "id": "nightly-backup-check-8",
+   "name": "Alert me",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    1300,
-    300
+    2080,
+    0
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "nightly-backup-check-9",
+   "name": "Backup fine",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    1040,
+    200
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "nightly-backup-check-10",
+   "name": "Recovered",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    2080,
+    200
    ]
   },
   {
@@ -103,7 +173,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -117,12 +187,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Nightly backup check\nConfirms last night's backup exists and is not suspiciously small, and alerts if not.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** It only checks; it never deletes or restores backups.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Nightly backup check\nChecks last night's backup. If it looks wrong it waits 10 minutes and checks again before alerting, to avoid false alarms.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Only checks. It never deletes or restores backups.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -132,23 +202,12 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
  "connections": {
   "Schedule": {
-   "main": [
-    [
-     {
-      "node": "Validate input",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
    "main": [
     [
      {
@@ -185,7 +244,65 @@
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Wait 10 minutes",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Backup fine",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Wait 10 minutes": {
+   "main": [
+    [
+     {
+      "node": "List again",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "List again": {
+   "main": [
+    [
+     {
+      "node": "Verify again",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Verify again": {
+   "main": [
+    [
+     {
+      "node": "Still a problem?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Still a problem?": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Recovered",
       "type": "main",
       "index": 0
      }
@@ -209,7 +326,7 @@
  },
  "meta": {
   "category": "DevOps",
-  "description": "Confirms last night's backup exists and is not suspiciously small, and alerts if not.",
-  "guardrails": "It only checks; it never deletes or restores backups."
+  "description": "Checks last night's backup. If it looks wrong it waits 10 minutes and checks again before alerting, to avoid false alarms.",
+  "guardrails": "Only checks. It never deletes or restores backups."
  }
 }

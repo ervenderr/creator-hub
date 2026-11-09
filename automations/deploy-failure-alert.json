@@ -13,20 +13,7 @@
    "typeVersion": 2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "deploy-failure-alert-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -40,26 +27,26 @@
      ]
     }
    },
-   "id": "deploy-failure-alert-2",
+   "id": "deploy-failure-alert-1",
    "name": "Failed?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
     "jsCode": "const b=$json.body;const log=String(b.log||'').replace(/(token|secret|key)[=:]\\s*\\S+/gi,'$1=[hidden]').slice(-800);return [{json:{app:b.app,url:b.url,log}}];"
    },
-   "id": "deploy-failure-alert-3",
-   "name": "Clean",
+   "id": "deploy-failure-alert-2",
+   "name": "Clean log",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    780,
-    300
+    520,
+    0
    ]
   },
   {
@@ -67,13 +54,38 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "=Deploy failed: {{$json.app}}\n{{$json.url}}\n{{$json.log}}"
    },
-   "id": "deploy-failure-alert-4",
-   "name": "Telegram",
+   "id": "deploy-failure-alert-3",
+   "name": "Alert me",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    1040,
-    300
+    780,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "REPLACE_ME_ISSUES_API"
+   },
+   "id": "deploy-failure-alert-4",
+   "name": "Open tracking issue",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    780,
+    200
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "deploy-failure-alert-5",
+   "name": "Count success",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    520,
+    200
    ]
   },
   {
@@ -84,7 +96,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -98,12 +110,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Deploy failure alert\nReceives a CI or deploy webhook and sends a plain summary of what failed, with a link.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Strips tokens and long logs before alerting. Sends only to your own chat.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Deploy failure alert\nReceives a deploy webhook. On failure it cleans the log, then alerts you and opens a tracking issue at the same time.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Strips tokens and long logs first. Successful deploys are only counted.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -113,23 +125,12 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
  "connections": {
   "Webhook": {
-   "main": [
-    [
-     {
-      "node": "Validate input",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
    "main": [
     [
      {
@@ -144,18 +145,30 @@
    "main": [
     [
      {
-      "node": "Clean",
+      "node": "Clean log",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Count success",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Clean": {
+  "Clean log": {
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Open tracking issue",
       "type": "main",
       "index": 0
      }
@@ -179,7 +192,7 @@
  },
  "meta": {
   "category": "Dev",
-  "description": "Receives a CI or deploy webhook and sends a plain summary of what failed, with a link.",
-  "guardrails": "Strips tokens and long logs before alerting. Sends only to your own chat."
+  "description": "Receives a deploy webhook. On failure it cleans the log, then alerts you and opens a tracking issue at the same time.",
+  "guardrails": "Strips tokens and long logs first. Successful deploys are only counted."
  }
 }

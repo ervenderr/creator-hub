@@ -18,20 +18,7 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "uptime-watch-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -39,26 +26,67 @@
     "method": "GET",
     "url": "https://REPLACE_ME.example.com"
    },
-   "id": "uptime-watch-2",
-   "name": "Ping site",
+   "id": "uptime-watch-1",
+   "name": "Ping main site",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
-    "jsCode": "const s=$getWorkflowStaticData('global');const up=$json.statusCode?$json.statusCode<400:true;const changed=s.up!==undefined&&s.up!==up;s.up=up;return [{json:{changed,up}}];"
+    "method": "GET",
+    "url": "https://api.REPLACE_ME.example.com/health"
+   },
+   "id": "uptime-watch-2",
+   "name": "Ping API",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    260,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "https://docs.REPLACE_ME.example.com"
    },
    "id": "uptime-watch-3",
+   "name": "Ping docs",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    260,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "numberInputs": 3
+   },
+   "id": "uptime-watch-4",
+   "name": "All results",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3,
+   "position": [
+    520,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const s=$getWorkflowStaticData('global');const down=$input.all().filter(i=>i.json.statusCode>=400).length;const up=down===0;const changed=s.up!==undefined&&s.up!==up;s.up=up;return [{json:{changed,up,down}}];"
+   },
+   "id": "uptime-watch-5",
    "name": "Detect change",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
     780,
-    300
+    0
    ]
   },
   {
@@ -72,27 +100,38 @@
      ]
     }
    },
-   "id": "uptime-watch-4",
+   "id": "uptime-watch-6",
    "name": "Changed?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
     1040,
-    300
+    0
    ]
   },
   {
    "parameters": {
     "chatId": "REPLACE_ME_CHAT_ID",
-    "text": "=Site is {{$json.up?'back up':'DOWN'}}"
+    "text": "=Status: {{$json.up?'all back up':$json.down+' endpoint(s) DOWN'}}"
    },
-   "id": "uptime-watch-5",
-   "name": "Telegram",
+   "id": "uptime-watch-7",
+   "name": "Tell me",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
     1300,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "uptime-watch-8",
+   "name": "No change",
+   "type": "n8n-nodes-base.noOp",
+   "typeVersion": 1,
+   "position": [
+    1300,
+    200
    ]
   },
   {
@@ -103,7 +142,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    700
    ]
   },
   {
@@ -117,12 +156,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    700
    ]
   },
   {
    "parameters": {
-    "content": "## Uptime watch\nChecks your sites every 5 minutes and alerts once when one goes down, and once when it recovers.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Keeps state so it alerts on change, not every 5 minutes.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Uptime watch\nPings three endpoints at once every 5 minutes and alerts once when any goes down, and once when it recovers.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Keeps state so it alerts on change, not every 5 minutes.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -132,7 +171,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
@@ -141,25 +180,57 @@
    "main": [
     [
      {
-      "node": "Validate input",
+      "node": "Ping main site",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Ping API",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Ping docs",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Validate input": {
+  "Ping main site": {
    "main": [
     [
      {
-      "node": "Ping site",
+      "node": "All results",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Ping site": {
+  "Ping API": {
+   "main": [
+    [
+     {
+      "node": "All results",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Ping docs": {
+   "main": [
+    [
+     {
+      "node": "All results",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  },
+  "All results": {
    "main": [
     [
      {
@@ -185,7 +256,14 @@
    "main": [
     [
      {
-      "node": "Telegram",
+      "node": "Tell me",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "No change",
       "type": "main",
       "index": 0
      }
@@ -209,7 +287,7 @@
  },
  "meta": {
   "category": "Ops",
-  "description": "Checks your sites every 5 minutes and alerts once when one goes down, and once when it recovers.",
+  "description": "Pings three endpoints at once every 5 minutes and alerts once when any goes down, and once when it recovers.",
   "guardrails": "Keeps state so it alerts on change, not every 5 minutes."
  }
 }

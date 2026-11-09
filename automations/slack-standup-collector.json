@@ -18,20 +18,7 @@
    "typeVersion": 1.2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "slack-standup-collector-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
@@ -42,29 +29,29 @@
      "mode": "name",
      "value": "REPLACE_ME_CHANNEL"
     },
-    "text": "=Standup time: what did you do, what is next, any blockers? Reply in thread."
+    "text": "=Standup: what did you do, what is next, any blockers? Reply in thread."
    },
-   "id": "slack-standup-collector-2",
-   "name": "Slack",
+   "id": "slack-standup-collector-1",
+   "name": "Ask questions",
    "type": "n8n-nodes-base.slack",
    "typeVersion": 2.2,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
-    "amount": 2,
-    "unit": "hours"
+    "amount": 120,
+    "unit": "minutes"
    },
-   "id": "slack-standup-collector-3",
-   "name": "Wait for replies",
+   "id": "slack-standup-collector-2",
+   "name": "Wait 2 hours",
    "type": "n8n-nodes-base.wait",
    "typeVersion": 1.1,
    "position": [
-    780,
-    300
+    520,
+    0
    ]
   },
   {
@@ -72,13 +59,65 @@
     "method": "GET",
     "url": "https://slack.com/api/conversations.replies"
    },
-   "id": "slack-standup-collector-4",
+   "id": "slack-standup-collector-3",
    "name": "Read replies",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
+    780,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const r=$input.all().map(i=>i.json.user);return [{json:{replied:r,silent:$('Schedule').first().json.team.filter(u=>!r.includes(u))}}];"
+   },
+   "id": "slack-standup-collector-4",
+   "name": "Who replied",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
     1040,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{$json.silent.length>0}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "slack-standup-collector-5",
+   "name": "Anyone silent?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    1300,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "select": "channel",
+    "channelId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "REPLACE_ME_CHANNEL"
+    },
+    "text": "=Reminder: standup reply please."
+   },
+   "id": "slack-standup-collector-6",
+   "name": "Nudge the silent",
+   "type": "n8n-nodes-base.slack",
+   "typeVersion": 2.2,
+   "position": [
+    1560,
+    0
    ]
   },
   {
@@ -100,13 +139,13 @@
     "specifyBody": "json",
     "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Summarize by person. Write 'no update' for anyone silent.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json)}}\"}]}"
    },
-   "id": "slack-standup-collector-5",
+   "id": "slack-standup-collector-7",
    "name": "Summarize",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
     1300,
-    300
+    200
    ]
   },
   {
@@ -119,13 +158,13 @@
     },
     "text": "={{$json.content[0].text}}"
    },
-   "id": "slack-standup-collector-6",
-   "name": "Slack 2",
+   "id": "slack-standup-collector-8",
+   "name": "Post summary",
    "type": "n8n-nodes-base.slack",
    "typeVersion": 2.2,
    "position": [
     1560,
-    300
+    200
    ]
   },
   {
@@ -136,7 +175,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    500
    ]
   },
   {
@@ -150,12 +189,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    500
    ]
   },
   {
    "parameters": {
-    "content": "## Slack standup collector\nAsks each person three questions every weekday and posts one combined summary for the team.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Skipped answers are listed as 'no update', not filled in.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Slack standup collector\nAsks the team three questions, waits, reads the replies, nudges anyone silent, and posts one combined summary.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Silent people are listed as 'no update', never filled in.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -165,7 +204,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
@@ -174,36 +213,25 @@
    "main": [
     [
      {
-      "node": "Validate input",
+      "node": "Ask questions",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Validate input": {
+  "Ask questions": {
    "main": [
     [
      {
-      "node": "Slack",
+      "node": "Wait 2 hours",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Slack": {
-   "main": [
-    [
-     {
-      "node": "Wait for replies",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Wait for replies": {
+  "Wait 2 hours": {
    "main": [
     [
      {
@@ -218,7 +246,34 @@
    "main": [
     [
      {
+      "node": "Who replied",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Who replied": {
+   "main": [
+    [
+     {
+      "node": "Anyone silent?",
+      "type": "main",
+      "index": 0
+     },
+     {
       "node": "Summarize",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Anyone silent?": {
+   "main": [
+    [
+     {
+      "node": "Nudge the silent",
       "type": "main",
       "index": 0
      }
@@ -229,7 +284,7 @@
    "main": [
     [
      {
-      "node": "Slack 2",
+      "node": "Post summary",
       "type": "main",
       "index": 0
      }
@@ -253,7 +308,7 @@
  },
  "meta": {
   "category": "Team",
-  "description": "Asks each person three questions every weekday and posts one combined summary for the team.",
-  "guardrails": "Skipped answers are listed as 'no update', not filled in."
+  "description": "Asks the team three questions, waits, reads the replies, nudges anyone silent, and posts one combined summary.",
+  "guardrails": "Silent people are listed as 'no update', never filled in."
  }
 }

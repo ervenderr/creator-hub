@@ -1,5 +1,5 @@
 {
- "name": "Document Q and A ingest",
+ "name": "Document Q and A",
  "nodes": [
   {
    "parameters": {
@@ -8,51 +8,51 @@
     "responseMode": "onReceived"
    },
    "id": "doc-qa-ingest-0",
-   "name": "Webhook",
+   "name": "Ingest webhook",
    "type": "n8n-nodes-base.webhook",
    "typeVersion": 2,
    "position": [
     0,
-    300
-   ]
-  },
-  {
-   "parameters": {
-    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
-   },
-   "id": "doc-qa-ingest-1",
-   "name": "Validate input",
-   "type": "n8n-nodes-base.code",
-   "typeVersion": 2,
-   "position": [
-    260,
-    300
+    0
    ]
   },
   {
    "parameters": {
     "operation": "pdf"
    },
-   "id": "doc-qa-ingest-2",
+   "id": "doc-qa-ingest-1",
    "name": "Extract PDF text",
    "type": "n8n-nodes-base.extractFromFile",
    "typeVersion": 1,
    "position": [
-    520,
-    300
+    260,
+    0
    ]
   },
   {
    "parameters": {
-    "jsCode": "const t=$json.text;const out=[];for(let i=0;i<t.length;i+=1200)out.push({json:{source:$('Webhook').item.json.body.name,pos:i,text:t.slice(i,i+1200)}});return out;"
+    "jsCode": "const t=$json.text;const out=[];for(let i=0;i<t.length;i+=1200)out.push({json:{source:$('Ingest webhook').item.json.body.name,pos:i,text:t.slice(i,i+1200)}});return out;"
    },
-   "id": "doc-qa-ingest-3",
-   "name": "Chunk",
+   "id": "doc-qa-ingest-2",
+   "name": "Chunk text",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
+    520,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "batchSize": 20
+   },
+   "id": "doc-qa-ingest-3",
+   "name": "In batches of 20",
+   "type": "n8n-nodes-base.splitInBatches",
+   "typeVersion": 3,
+   "position": [
     780,
-    300
+    0
    ]
   },
   {
@@ -61,12 +61,12 @@
     "url": "REPLACE_ME_EMBEDDING_API"
    },
    "id": "doc-qa-ingest-4",
-   "name": "Embed",
+   "name": "Embed chunks",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
     1040,
-    300
+    0
    ]
   },
   {
@@ -89,7 +89,104 @@
    "typeVersion": 4.5,
    "position": [
     1300,
-    300
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Document ingested."
+   },
+   "id": "doc-qa-ingest-6",
+   "name": "Ingest done",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    1040,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "doc-ask",
+    "responseMode": "onReceived"
+   },
+   "id": "doc-qa-ingest-7",
+   "name": "Ask webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    0,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "promptType": "define",
+    "text": "={{$json.text}}",
+    "options": {
+     "systemMessage": "Answer only from the search tool results and cite the source and position. If nothing matches, say you do not know."
+    }
+   },
+   "id": "doc-qa-ingest-8",
+   "name": "Answer agent",
+   "type": "@n8n/n8n-nodes-langchain.agent",
+   "typeVersion": 1.7,
+   "position": [
+    260,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "model": "claude-haiku-5-5"
+   },
+   "id": "doc-qa-ingest-9",
+   "name": "Claude model",
+   "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+   "typeVersion": 1.3,
+   "position": [
+    110,
+    430
+   ]
+  },
+  {
+   "parameters": {
+    "contextWindowLength": 6
+   },
+   "id": "doc-qa-ingest-10",
+   "name": "Chat memory",
+   "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+   "typeVersion": 1.3,
+   "position": [
+    280,
+    430
+   ]
+  },
+  {
+   "parameters": {
+    "toolDescription": "Search the ingested document chunks",
+    "url": "REPLACE_ME_SEARCH_API"
+   },
+   "id": "doc-qa-ingest-11",
+   "name": "Search chunks",
+   "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+   "typeVersion": 1.1,
+   "position": [
+    450,
+    430
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "doc-qa-ingest-12",
+   "name": "Reply",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.1,
+   "position": [
+    520,
+    200
    ]
   },
   {
@@ -100,7 +197,7 @@
    "typeVersion": 1,
    "position": [
     0,
-    560
+    730
    ]
   },
   {
@@ -114,12 +211,12 @@
    "typeVersion": 1.2,
    "position": [
     260,
-    560
+    730
    ]
   },
   {
    "parameters": {
-    "content": "## Document Q and A ingest\nSplits a document into chunks with sources, so answers can cite the exact passage.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Each chunk keeps its file name and position, so every answer can be checked.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "content": "## Document Q and A\nTwo entry points. One ingests a PDF into searchable chunks, in batches. The other is an AI agent that answers questions and cites the source chunk.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Each chunk keeps its file name and position. The agent must cite a chunk or say it does not know.\n\nA failed run alerts you. No secrets are stored in this file.",
     "height": 220,
     "width": 560
    },
@@ -129,23 +226,12 @@
    "typeVersion": 1,
    "position": [
     0,
-    20
+    -320
    ]
   }
  ],
  "connections": {
-  "Webhook": {
-   "main": [
-    [
-     {
-      "node": "Validate input",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Validate input": {
+  "Ingest webhook": {
    "main": [
     [
      {
@@ -160,29 +246,113 @@
    "main": [
     [
      {
-      "node": "Chunk",
+      "node": "Chunk text",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Chunk": {
+  "Chunk text": {
    "main": [
     [
      {
-      "node": "Embed",
+      "node": "In batches of 20",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Embed": {
+  "In batches of 20": {
+   "main": [
+    [
+     {
+      "node": "Ingest done",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Embed chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Embed chunks": {
    "main": [
     [
      {
       "node": "Store chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Store chunks": {
+   "main": [
+    [
+     {
+      "node": "In batches of 20",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Ask webhook": {
+   "main": [
+    [
+     {
+      "node": "Answer agent",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Claude model": {
+   "ai_languageModel": [
+    [
+     {
+      "node": "Answer agent",
+      "type": "ai_languageModel",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Chat memory": {
+   "ai_memory": [
+    [
+     {
+      "node": "Answer agent",
+      "type": "ai_memory",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Search chunks": {
+   "ai_tool": [
+    [
+     {
+      "node": "Answer agent",
+      "type": "ai_tool",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Answer agent": {
+   "main": [
+    [
+     {
+      "node": "Reply",
       "type": "main",
       "index": 0
      }
@@ -206,7 +376,7 @@
  },
  "meta": {
   "category": "AI Research",
-  "description": "Splits a document into chunks with sources, so answers can cite the exact passage.",
-  "guardrails": "Each chunk keeps its file name and position, so every answer can be checked."
+  "description": "Two entry points. One ingests a PDF into searchable chunks, in batches. The other is an AI agent that answers questions and cites the source chunk.",
+  "guardrails": "Each chunk keeps its file name and position. The agent must cite a chunk or say it does not know."
  }
 }
