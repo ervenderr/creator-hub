@@ -23,13 +23,12 @@
   },
   {
    "parameters": {
-    "method": "GET",
-    "url": "https://REPLACE_ME.example.com"
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
    },
    "id": "uptime-watch-1",
-   "name": "Ping site",
-   "type": "n8n-nodes-base.httpRequest",
-   "typeVersion": 4.2,
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
    "position": [
     260,
     300
@@ -37,14 +36,28 @@
   },
   {
    "parameters": {
-    "jsCode": "const s=$getWorkflowStaticData('global');const up=$json.statusCode?$json.statusCode<400:true;const changed=s.up!==undefined&&s.up!==up;s.up=up;return [{json:{changed,up}}];"
+    "method": "GET",
+    "url": "https://REPLACE_ME.example.com"
    },
    "id": "uptime-watch-2",
+   "name": "Ping site",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const s=$getWorkflowStaticData('global');const up=$json.statusCode?$json.statusCode<400:true;const changed=s.up!==undefined&&s.up!==up;s.up=up;return [{json:{changed,up}}];"
+   },
+   "id": "uptime-watch-3",
    "name": "Detect change",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    520,
+    780,
     300
    ]
   },
@@ -59,12 +72,12 @@
      ]
     }
    },
-   "id": "uptime-watch-3",
+   "id": "uptime-watch-4",
    "name": "Changed?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
-    780,
+    1040,
     300
    ]
   },
@@ -73,20 +86,45 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "=Site is {{$json.up?'back up':'DOWN'}}"
    },
-   "id": "uptime-watch-4",
+   "id": "uptime-watch-5",
    "name": "Telegram",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    1040,
+    1300,
     300
    ]
   },
   {
+   "parameters": {},
+   "id": "uptime-watch-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
    "parameters": {
-    "content": "## Uptime watch\nChecks your sites every 5 minutes and alerts once when one goes down, and once when it recovers.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Keeps state so it alerts on change, not every 5 minutes.\n\nNo secrets are stored in this file.",
-    "height": 200,
-    "width": 520
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "uptime-watch-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Uptime watch\nChecks your sites every 5 minutes and alerts once when one goes down, and once when it recovers.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Keeps state so it alerts on change, not every 5 minutes.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
    },
    "id": "uptime-watch-note",
    "name": "Read me",
@@ -94,12 +132,23 @@
    "typeVersion": 1,
    "position": [
     0,
-    60
+    20
    ]
   }
  ],
  "connections": {
   "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
    "main": [
     [
      {
@@ -137,6 +186,17 @@
     [
      {
       "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
       "type": "main",
       "index": 0
      }

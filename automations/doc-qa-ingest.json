@@ -1,0 +1,212 @@
+{
+ "name": "Document Q and A ingest",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "doc-ingest",
+    "responseMode": "onReceived"
+   },
+   "id": "doc-qa-ingest-0",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "doc-qa-ingest-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "pdf"
+   },
+   "id": "doc-qa-ingest-2",
+   "name": "Extract PDF text",
+   "type": "n8n-nodes-base.extractFromFile",
+   "typeVersion": 1,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const t=$json.text;const out=[];for(let i=0;i<t.length;i+=1200)out.push({json:{source:$('Webhook').item.json.body.name,pos:i,text:t.slice(i,i+1200)}});return out;"
+   },
+   "id": "doc-qa-ingest-3",
+   "name": "Chunk",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "REPLACE_ME_EMBEDDING_API"
+   },
+   "id": "doc-qa-ingest-4",
+   "name": "Embed",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Sheet1"
+    }
+   },
+   "id": "doc-qa-ingest-5",
+   "name": "Store chunks",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    1300,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "doc-qa-ingest-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "doc-qa-ingest-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Document Q and A ingest\nSplits a document into chunks with sources, so answers can cite the exact passage.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Each chunk keeps its file name and position, so every answer can be checked.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "doc-qa-ingest-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "Extract PDF text",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extract PDF text": {
+   "main": [
+    [
+     {
+      "node": "Chunk",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Chunk": {
+   "main": [
+    [
+     {
+      "node": "Embed",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Embed": {
+   "main": [
+    [
+     {
+      "node": "Store chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "AI Research",
+  "description": "Splits a document into chunks with sources, so answers can cite the exact passage.",
+  "guardrails": "Each chunk keeps its file name and position, so every answer can be checked."
+ }
+}

@@ -1,0 +1,190 @@
+{
+ "name": "Calendar prep brief",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "30 7 * * 1-5"
+      }
+     ]
+    }
+   },
+   "id": "calendar-prep-brief-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "calendar-prep-brief-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "getAll",
+    "calendar": {
+     "__rl": true,
+     "mode": "id",
+     "value": "primary"
+    },
+    "returnAll": false,
+    "limit": 15
+   },
+   "id": "calendar-prep-brief-2",
+   "name": "Today's events",
+   "type": "n8n-nodes-base.googleCalendar",
+   "typeVersion": 1.2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "return [{json:{list:$input.all().map(i=>i.json.summary+' at '+i.json.start?.dateTime).join('\\n')}}];"
+   },
+   "id": "calendar-prep-brief-3",
+   "name": "List",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Today:\n{{$json.list}}"
+   },
+   "id": "calendar-prep-brief-4",
+   "name": "Telegram",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "calendar-prep-brief-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "calendar-prep-brief-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Calendar prep brief\nEach morning, lists today's meetings with who is in them and what you last discussed.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Uses only your own calendar and notes. Nothing is shared outside your chat.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "calendar-prep-brief-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "Today's events",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Today's events": {
+   "main": [
+    [
+     {
+      "node": "List",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "List": {
+   "main": [
+    [
+     {
+      "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Productivity",
+  "description": "Each morning, lists today's meetings with who is in them and what you last discussed.",
+  "guardrails": "Uses only your own calendar and notes. Nothing is shared outside your chat."
+ }
+}

@@ -9,13 +9,77 @@
    "guardrails": "Posts only rows with status = approved, and writes status = posted right after to prevent duplicates.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Get approved rows",
     "Approved?",
     "Publish",
-    "Mark posted"
+    "Mark posted",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/approved-post-publisher.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/approved-post-publisher.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/approved-post-publisher.json"
+  },
+  {
+   "id": "calendar-prep-brief",
+   "name": "Calendar prep brief",
+   "category": "Productivity",
+   "desc": "Each morning, lists today's meetings with who is in them and what you last discussed.",
+   "guardrails": "Uses only your own calendar and notes. Nothing is shared outside your chat.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Today's events",
+    "List",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/calendar-prep-brief.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/calendar-prep-brief.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/calendar-prep-brief.json"
+  },
+  {
+   "id": "contract-clause-flagger",
+   "name": "Contract clause flagger",
+   "category": "Documents",
+   "desc": "Reads a contract PDF and lists risky clauses (payment, termination, liability) with the page text quoted.",
+   "guardrails": "Quotes the exact text for every flag so you can verify. It is a checklist, not legal advice.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Extract PDF text",
+    "Flag clauses",
+    "Parse",
+    "Save flags",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/contract-clause-flagger.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/contract-clause-flagger.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/contract-clause-flagger.json"
+  },
+  {
+   "id": "cv-screener",
+   "name": "CV screener with review queue",
+   "category": "HR",
+   "desc": "Scores each CV against a role brief on skills only and queues a ranked list for a human. It never rejects anyone.",
+   "guardrails": "Name, age, gender and photo are removed before scoring. Every candidate stays in the queue; a person decides.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Extract PDF text",
+    "Strip identity",
+    "Score skills",
+    "Parse",
+    "Add to review queue",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/cv-screener.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/cv-screener.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/cv-screener.json"
   },
   {
    "id": "daily-research-brief",
@@ -25,11 +89,15 @@
    "guardrails": "Every item keeps its original link so you can verify. The model picks, it does not rewrite facts.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Read feed",
     "Collect",
     "Pick five",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/daily-research-brief.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/daily-research-brief.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/daily-research-brief.json"
   },
@@ -41,12 +109,56 @@
    "guardrails": "Strips tokens and long logs before alerting. Sends only to your own chat.",
    "steps": [
     "Webhook",
+    "Validate input",
     "Failed?",
     "Clean",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/deploy-failure-alert.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/deploy-failure-alert.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/deploy-failure-alert.json"
+  },
+  {
+   "id": "discord-moderation-flag",
+   "name": "Discord moderation flag",
+   "category": "Community",
+   "desc": "Flags messages that look like spam or abuse to a mod channel. It never deletes or bans.",
+   "guardrails": "Flag-only. A human moderator takes every action.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Check message",
+    "Parse",
+    "Flag?",
+    "Discord",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/discord-moderation-flag.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/discord-moderation-flag.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/discord-moderation-flag.json"
+  },
+  {
+   "id": "doc-qa-ingest",
+   "name": "Document Q and A ingest",
+   "category": "AI Research",
+   "desc": "Splits a document into chunks with sources, so answers can cite the exact passage.",
+   "guardrails": "Each chunk keeps its file name and position, so every answer can be checked.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Extract PDF text",
+    "Chunk",
+    "Embed",
+    "Store chunks",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/doc-qa-ingest.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/doc-qa-ingest.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/doc-qa-ingest.json"
   },
   {
    "id": "draft-replies-for-approval",
@@ -56,10 +168,14 @@
    "guardrails": "Output is a Gmail draft only. Sending stays a human click.",
    "steps": [
     "New email",
+    "Validate input",
     "Draft reply",
     "Create draft",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/draft-replies-for-approval.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/draft-replies-for-approval.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/draft-replies-for-approval.json"
   },
@@ -71,10 +187,14 @@
    "guardrails": "Adds a label and one comment only. Issue text is treated as untrusted data.",
    "steps": [
     "Webhook",
+    "Validate input",
     "New issue?",
     "Classify",
-    "Add label"
+    "Add label",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/github-issue-triage.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/github-issue-triage.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/github-issue-triage.json"
   },
@@ -86,13 +206,17 @@
    "guardrails": "If the page has under 300 characters of text, no draft is written and the row is flagged for review. Nothing is sent.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Get new leads",
     "Fetch site",
     "Extract text",
     "Enough text?",
     "Write draft",
-    "Save draft"
+    "Save draft",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/grounded-cold-outreach.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/grounded-cold-outreach.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/grounded-cold-outreach.json"
   },
@@ -104,13 +228,76 @@
    "guardrails": "Reads only subject, sender and the first 500 characters. It never replies, deletes or labels anything.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Get unread",
     "Trim to metadata",
     "Classify",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/inbox-triage-digest.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/inbox-triage-digest.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/inbox-triage-digest.json"
+  },
+  {
+   "id": "invoice-overdue-reminder",
+   "name": "Invoice overdue reminder",
+   "category": "Finance",
+   "desc": "Finds unpaid invoices past due and drafts a polite reminder for each, for you to send.",
+   "guardrails": "Drafts only. Never emails a client on its own.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Read invoices",
+    "Overdue",
+    "Draft reminder",
+    "Save draft",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/invoice-overdue-reminder.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/invoice-overdue-reminder.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/invoice-overdue-reminder.json"
+  },
+  {
+   "id": "meeting-notes-to-tasks",
+   "name": "Meeting notes to tasks",
+   "category": "Productivity",
+   "desc": "Turns a transcript into a summary and a task list, and creates Notion pages for the tasks.",
+   "guardrails": "Tasks without an owner are marked 'unassigned' rather than guessed.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Extract",
+    "Split tasks",
+    "Create task page",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/meeting-notes-to-tasks.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/meeting-notes-to-tasks.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/meeting-notes-to-tasks.json"
+  },
+  {
+   "id": "nightly-backup-check",
+   "name": "Nightly backup check",
+   "category": "DevOps",
+   "desc": "Confirms last night's backup exists and is not suspiciously small, and alerts if not.",
+   "guardrails": "It only checks; it never deletes or restores backups.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "List backups",
+    "Verify",
+    "Problem?",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/nightly-backup-check.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/nightly-backup-check.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/nightly-backup-check.json"
   },
   {
    "id": "phishing-check",
@@ -120,14 +307,37 @@
    "guardrails": "Never opens links or attachments. Only extracts link text and domains for the model to judge.",
    "steps": [
     "New email",
+    "Validate input",
     "Extract signals",
     "Score risk",
     "Parse",
     "Risky?",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/phishing-check.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/phishing-check.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/phishing-check.json"
+  },
+  {
+   "id": "product-review-digest",
+   "name": "Product review digest",
+   "category": "Research",
+   "desc": "Reads new reviews of your product each week and lists the top three complaints with real quotes.",
+   "guardrails": "Every theme has at least one verbatim quote. No quote, no theme.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Get reviews",
+    "Find themes",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/product-review-digest.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/product-review-digest.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/product-review-digest.json"
   },
   {
    "id": "receipt-extractor",
@@ -137,12 +347,99 @@
    "guardrails": "Writes rows with a confidence flag. Low-confidence rows are marked for manual check, never guessed.",
    "steps": [
     "New email",
+    "Validate input",
     "Extract",
     "Parse",
-    "Append row"
+    "Append row",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/receipt-extractor.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/receipt-extractor.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/receipt-extractor.json"
+  },
+  {
+   "id": "slack-standup-collector",
+   "name": "Slack standup collector",
+   "category": "Team",
+   "desc": "Asks each person three questions every weekday and posts one combined summary for the team.",
+   "guardrails": "Skipped answers are listed as 'no update', not filled in.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Slack",
+    "Wait for replies",
+    "Read replies",
+    "Summarize",
+    "Slack 2",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/slack-standup-collector.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/slack-standup-collector.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/slack-standup-collector.json"
+  },
+  {
+   "id": "social-comment-reply-drafts",
+   "name": "Social comment reply drafts",
+   "category": "Social",
+   "desc": "Drafts replies to new comments in your tone and stores them for you to approve. It never replies itself.",
+   "guardrails": "Drafts go to a sheet. Abusive or sensitive comments are skipped and flagged.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Get comments",
+    "Draft reply",
+    "Parse",
+    "Safe to draft?",
+    "Queue reply",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/social-comment-reply-drafts.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/social-comment-reply-drafts.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/social-comment-reply-drafts.json"
+  },
+  {
+   "id": "ssl-expiry-watch",
+   "name": "SSL expiry watch",
+   "category": "DevOps",
+   "desc": "Checks your domains daily and warns 21 days before a certificate expires.",
+   "guardrails": "Read-only checks. Alerts once per domain per week.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Check cert API",
+    "Days left",
+    "Alert?",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/ssl-expiry-watch.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/ssl-expiry-watch.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/ssl-expiry-watch.json"
+  },
+  {
+   "id": "stale-lead-nudge",
+   "name": "Stale lead nudge",
+   "category": "Sales",
+   "desc": "Finds leads with no contact in 7 days and sends you a short list with a suggested next step.",
+   "guardrails": "Read-only on the sheet. It suggests, you decide who to contact.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Read leads",
+    "Find stale",
+    "Any stale?",
+    "Suggest steps",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/stale-lead-nudge.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/stale-lead-nudge.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/stale-lead-nudge.json"
   },
   {
    "id": "support-form-triage",
@@ -152,14 +449,38 @@
    "guardrails": "Adds a priority and one-line summary. It does not reply to the customer.",
    "steps": [
     "Webhook",
+    "Validate input",
     "Prioritize",
     "Parse",
     "Log ticket",
     "Urgent?",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/support-form-triage.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/support-form-triage.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/support-form-triage.json"
+  },
+  {
+   "id": "survey-sentiment",
+   "name": "Survey sentiment report",
+   "category": "Forms",
+   "desc": "Reads new survey answers, tags the sentiment and themes, and sends a weekly one-screen report.",
+   "guardrails": "Counts are computed in code. Quotes shown are the real answers.",
+   "steps": [
+    "Schedule",
+    "Validate input",
+    "Read answers",
+    "Tag",
+    "Count",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/survey-sentiment.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/survey-sentiment.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/survey-sentiment.json"
   },
   {
    "id": "uptime-watch",
@@ -169,11 +490,15 @@
    "guardrails": "Keeps state so it alerts on change, not every 5 minutes.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Ping site",
     "Detect change",
     "Changed?",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/uptime-watch.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/uptime-watch.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/uptime-watch.json"
   },
@@ -185,13 +510,37 @@
    "guardrails": "Drafts land in a sheet with status 'draft'. Nothing is posted automatically.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Read feed",
     "Only new",
     "Draft content",
-    "Queue for review"
+    "Queue for review",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/video-to-content-pack.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/video-to-content-pack.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/video-to-content-pack.json"
+  },
+  {
+   "id": "voice-note-to-notes",
+   "name": "Voice note to notes",
+   "category": "Telegram",
+   "desc": "Send a voice note to a Telegram bot and get back a clean summary and to-dos.",
+   "guardrails": "Only your own chat id is accepted; messages from anyone else are ignored.",
+   "steps": [
+    "Telegram trigger",
+    "Validate input",
+    "My chat?",
+    "Transcribe",
+    "Summarize",
+    "Telegram",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/voice-note-to-notes.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/voice-note-to-notes.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/voice-note-to-notes.json"
   },
   {
    "id": "weekly-metrics-summary",
@@ -201,13 +550,58 @@
    "guardrails": "The math is done in code. The model only words the result and cannot change the numbers.",
    "steps": [
     "Schedule",
+    "Validate input",
     "Read metrics",
     "Compute",
     "Word it",
-    "Telegram"
+    "Telegram",
+    "On error",
+    "Alert me"
    ],
+   "image": "automations/shots/weekly-metrics-summary.jpg",
    "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/weekly-metrics-summary.json",
    "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/weekly-metrics-summary.json"
+  },
+  {
+   "id": "whatsapp-faq-handoff",
+   "name": "WhatsApp FAQ with human handoff",
+   "category": "Support",
+   "desc": "Answers common questions from your FAQ sheet and hands anything uncertain to a person.",
+   "guardrails": "Answers only from the FAQ text. If it is not covered, it says so and pings you instead of guessing.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Read FAQ",
+    "Pack FAQ",
+    "Answer",
+    "Parse",
+    "Covered?",
+    "Send reply",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/whatsapp-faq-handoff.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/whatsapp-faq-handoff.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/whatsapp-faq-handoff.json"
+  },
+  {
+   "id": "wordpress-draft-from-outline",
+   "name": "WordPress draft from outline",
+   "category": "Content",
+   "desc": "Expands an outline into a draft post in WordPress, as a draft only.",
+   "guardrails": "Always creates status = draft. Nothing is published without you.",
+   "steps": [
+    "Webhook",
+    "Validate input",
+    "Write draft",
+    "Shape",
+    "Create WP draft",
+    "On error",
+    "Alert me"
+   ],
+   "image": "automations/shots/wordpress-draft-from-outline.jpg",
+   "source": "https://github.com/ervenderr/creator-hub/blob/main/automations/wordpress-draft-from-outline.json",
+   "raw": "https://raw.githubusercontent.com/ervenderr/creator-hub/main/automations/wordpress-draft-from-outline.json"
   }
  ]
 }

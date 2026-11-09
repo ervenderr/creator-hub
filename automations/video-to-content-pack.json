@@ -23,12 +23,12 @@
   },
   {
    "parameters": {
-    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=REPLACE_ME"
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
    },
    "id": "video-to-content-pack-1",
-   "name": "Read feed",
-   "type": "n8n-nodes-base.rssFeedRead",
-   "typeVersion": 1,
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
    "position": [
     260,
     300
@@ -36,14 +36,27 @@
   },
   {
    "parameters": {
-    "jsCode": "const s=$getWorkflowStaticData('global');s.seen=s.seen||[];const out=$input.all().filter(i=>!s.seen.includes(i.json.link));s.seen=[...s.seen,...out.map(i=>i.json.link)].slice(-200);return out;"
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=REPLACE_ME"
    },
    "id": "video-to-content-pack-2",
+   "name": "Read feed",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const s=$getWorkflowStaticData('global');s.seen=s.seen||[];const out=$input.all().filter(i=>!s.seen.includes(i.json.link));s.seen=[...s.seen,...out.map(i=>i.json.link)].slice(-200);return out;"
+   },
+   "id": "video-to-content-pack-3",
    "name": "Only new",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    520,
+    780,
     300
    ]
   },
@@ -66,12 +79,12 @@
     "specifyBody": "json",
     "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Write one post and a 4-part thread from this video title and summary. Plain, no hype, no invented facts.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{$json.title + '\\\\n' + $json.contentSnippet}}\"}]}"
    },
-   "id": "video-to-content-pack-3",
+   "id": "video-to-content-pack-4",
    "name": "Draft content",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    780,
+    1040,
     300
    ]
   },
@@ -89,20 +102,45 @@
      "value": "Sheet1"
     }
    },
-   "id": "video-to-content-pack-4",
+   "id": "video-to-content-pack-5",
    "name": "Queue for review",
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    1040,
+    1300,
     300
    ]
   },
   {
+   "parameters": {},
+   "id": "video-to-content-pack-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
    "parameters": {
-    "content": "## Video to content pack\nWhen a new video appears in a feed, drafts a title, a post and a short thread into a review sheet.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Drafts land in a sheet with status 'draft'. Nothing is posted automatically.\n\nNo secrets are stored in this file.",
-    "height": 200,
-    "width": 520
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "video-to-content-pack-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Video to content pack\nWhen a new video appears in a feed, drafts a title, a post and a short thread into a review sheet.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Drafts land in a sheet with status 'draft'. Nothing is posted automatically.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
    },
    "id": "video-to-content-pack-note",
    "name": "Read me",
@@ -110,12 +148,23 @@
    "typeVersion": 1,
    "position": [
     0,
-    60
+    20
    ]
   }
  ],
  "connections": {
   "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
    "main": [
     [
      {
@@ -153,6 +202,17 @@
     [
      {
       "node": "Queue for review",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
       "type": "main",
       "index": 0
      }

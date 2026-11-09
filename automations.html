@@ -21,7 +21,7 @@ h1{font-size:32px;margin:0 0 4px}.lead{color:var(--mute);margin:0 0 20px}
 .chip.on{border-color:var(--accent);color:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.card h2{font-size:17px;margin:0}.tag{font-size:12px;color:var(--accent);font-weight:600}
+.card img{width:100%;border-radius:8px;border:1px solid var(--line);background:#f0f0f0;display:block}.card h2{font-size:17px;margin:0}.tag{font-size:12px;color:var(--accent);font-weight:600}
 .card p{margin:0;font-size:14px;color:var(--mute)}.card .g{color:var(--fg)}
 .steps{font-size:12px;color:var(--mute)}
 .row{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}
@@ -34,7 +34,7 @@ footer{padding:14px 16px;font-size:12px;color:var(--mute);text-align:center;bord
 <nav><b>Ervenderr <span class="dot">|</span> AI</b><a href="/">← Back to home</a></nav>
 <main>
 <h1>Automations</h1>
-<p class="lead">Original n8n workflows. Each one has a human approval step or a hard limit built in, and no secrets inside.</p>
+<p class="lead">Original n8n workflows, shown as they look in the n8n canvas. Each has input validation, an error alert, and a human approval step or hard limit, with no secrets inside. In n8n: Workflows, Import from File.</p>
 <input id="q" type="search" placeholder="Search automations…" aria-label="Search automations">
 <div class="chips" id="chips"></div>
 <div class="grid" id="grid"></div>
@@ -47,7 +47,7 @@ let all=[],cat="All";
 function render(){
   const q=$("q").value.toLowerCase();
   const list=all.filter(a=>(cat==="All"||a.category===cat)&&(a.name+a.desc+a.category).toLowerCase().includes(q));
-  $("grid").innerHTML=list.map(a=>`<div class="card"><span class="tag">${esc(a.category)}</span><h2>${esc(a.name)}</h2><p>${esc(a.desc)}</p><p class="g"><b>Guardrail:</b> ${esc(a.guardrails)}</p><p class="steps">${a.steps.map(esc).join(" → ")}</p><div class="row"><a class="btn" href="${esc(a.raw)}" download>Download JSON</a><button class="btn ghost" data-u="${esc(a.raw)}">Copy link</button><a class="btn ghost" href="${esc(a.source)}" target="_blank" rel="noopener">View source</a></div></div>`).join("")||"<p>No match.</p>";
+  $("grid").innerHTML=list.map(a=>`<div class="card"><a href="${esc(a.image)}" target="_blank" rel="noopener"><img src="${esc(a.image)}" alt="${esc(a.name)} in the n8n canvas" loading="lazy"></a><span class="tag">${esc(a.category)}</span><h2>${esc(a.name)}</h2><p>${esc(a.desc)}</p><p class="g"><b>Guardrail:</b> ${esc(a.guardrails)}</p><p class="steps">${a.steps.map(esc).join(" → ")}</p><div class="row"><a class="btn" href="${esc(a.raw)}" download>Download JSON</a><button class="btn ghost" data-u="${esc(a.raw)}">Copy link</button><a class="btn ghost" href="${esc(a.source)}" target="_blank" rel="noopener">View source</a></div></div>`).join("")||"<p>No match.</p>";
 }
 fetch("automations.json").then(r=>r.json()).then(d=>{
   all=d.items;

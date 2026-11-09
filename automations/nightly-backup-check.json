@@ -1,0 +1,215 @@
+{
+ "name": "Nightly backup check",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 5 * * *"
+      }
+     ]
+    }
+   },
+   "id": "nightly-backup-check-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "nightly-backup-check-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "REPLACE_ME_BACKUP_LIST_URL"
+   },
+   "id": "nightly-backup-check-2",
+   "name": "List backups",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const l=$json.files||[];const last=l.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];const ok=last&&Date.now()-new Date(last.date)<26*36e5&&last.size>1024;return [{json:{ok:!!ok,last:last||null}}];"
+   },
+   "id": "nightly-backup-check-3",
+   "name": "Verify",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{!$json.ok}}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "nightly-backup-check-4",
+   "name": "Problem?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 1,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Backup problem. Last file: {{JSON.stringify($json.last)}}"
+   },
+   "id": "nightly-backup-check-5",
+   "name": "Telegram",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    1300,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "nightly-backup-check-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "nightly-backup-check-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Nightly backup check\nConfirms last night's backup exists and is not suspiciously small, and alerts if not.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** It only checks; it never deletes or restores backups.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "nightly-backup-check-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "List backups",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "List backups": {
+   "main": [
+    [
+     {
+      "node": "Verify",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Verify": {
+   "main": [
+    [
+     {
+      "node": "Problem?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Problem?": {
+   "main": [
+    [
+     {
+      "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "DevOps",
+  "description": "Confirms last night's backup exists and is not suspiciously small, and alerts if not.",
+  "guardrails": "It only checks; it never deletes or restores backups."
+ }
+}

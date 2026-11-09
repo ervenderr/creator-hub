@@ -23,12 +23,12 @@
   },
   {
    "parameters": {
-    "url": "https://news.ycombinator.com/rss"
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
    },
    "id": "daily-research-brief-1",
-   "name": "Read feed",
-   "type": "n8n-nodes-base.rssFeedRead",
-   "typeVersion": 1,
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
    "position": [
     260,
     300
@@ -36,14 +36,27 @@
   },
   {
    "parameters": {
-    "jsCode": "return [{json:{items:$input.all().slice(0,30).map(i=>({title:i.json.title,link:i.json.link}))}}];"
+    "url": "https://news.ycombinator.com/rss"
    },
    "id": "daily-research-brief-2",
+   "name": "Read feed",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "return [{json:{items:$input.all().slice(0,30).map(i=>({title:i.json.title,link:i.json.link}))}}];"
+   },
+   "id": "daily-research-brief-3",
    "name": "Collect",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    520,
+    780,
     300
    ]
   },
@@ -66,12 +79,12 @@
     "specifyBody": "json",
     "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Pick the 5 most useful items for an AI engineer. Reply with JSON only, no prose. Shape: [{\\\"title\\\":\\\"\\\",\\\"link\\\":\\\"\\\",\\\"why\\\":\\\"\\\"}]. Keep links exactly as given.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json.items)}}\"}]}"
    },
-   "id": "daily-research-brief-3",
+   "id": "daily-research-brief-4",
    "name": "Pick five",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    780,
+    1040,
     300
    ]
   },
@@ -80,20 +93,45 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "=Brief: {{$json.content[0].text}}"
    },
-   "id": "daily-research-brief-4",
+   "id": "daily-research-brief-5",
    "name": "Telegram",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    1040,
+    1300,
     300
    ]
   },
   {
+   "parameters": {},
+   "id": "daily-research-brief-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
    "parameters": {
-    "content": "## Daily research brief\nReads your chosen feeds each morning and sends the five items worth your time, each with its link.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Every item keeps its original link so you can verify. The model picks, it does not rewrite facts.\n\nNo secrets are stored in this file.",
-    "height": 200,
-    "width": 520
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "daily-research-brief-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Daily research brief\nReads your chosen feeds each morning and sends the five items worth your time, each with its link.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Every item keeps its original link so you can verify. The model picks, it does not rewrite facts.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
    },
    "id": "daily-research-brief-note",
    "name": "Read me",
@@ -101,12 +139,23 @@
    "typeVersion": 1,
    "position": [
     0,
-    60
+    20
    ]
   }
  ],
  "connections": {
   "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
    "main": [
     [
      {
@@ -144,6 +193,17 @@
     [
      {
       "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
       "type": "main",
       "index": 0
      }

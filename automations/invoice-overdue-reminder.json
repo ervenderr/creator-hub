@@ -1,0 +1,234 @@
+{
+ "name": "Invoice overdue reminder",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 9 * * 1"
+      }
+     ]
+    }
+   },
+   "id": "invoice-overdue-reminder-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "invoice-overdue-reminder-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "getAll",
+    "documentId": {
+     "__rl": true,
+     "mode": "url",
+     "value": ""
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Sheet1"
+    }
+   },
+   "id": "invoice-overdue-reminder-2",
+   "name": "Read invoices",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().filter(i=>i.json.status==='unpaid'&&new Date(i.json.due)<new Date());"
+   },
+   "id": "invoice-overdue-reminder-3",
+   "name": "Overdue",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Write a polite 3-line payment reminder. Do not add fees or threats.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json)}}\"}]}"
+   },
+   "id": "invoice-overdue-reminder-4",
+   "name": "Draft reminder",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "draft",
+    "operation": "create",
+    "subject": "=Reminder: invoice {{$('Overdue').item.json.number}}",
+    "message": "={{$json.content[0].text}}"
+   },
+   "id": "invoice-overdue-reminder-5",
+   "name": "Save draft",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    1300,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "invoice-overdue-reminder-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "invoice-overdue-reminder-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Invoice overdue reminder\nFinds unpaid invoices past due and drafts a polite reminder for each, for you to send.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Drafts only. Never emails a client on its own.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "invoice-overdue-reminder-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "Read invoices",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read invoices": {
+   "main": [
+    [
+     {
+      "node": "Overdue",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Overdue": {
+   "main": [
+    [
+     {
+      "node": "Draft reminder",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Draft reminder": {
+   "main": [
+    [
+     {
+      "node": "Save draft",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Finance",
+  "description": "Finds unpaid invoices past due and drafts a polite reminder for each, for you to send.",
+  "guardrails": "Drafts only. Never emails a client on its own."
+ }
+}

@@ -18,6 +18,19 @@
   },
   {
    "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "deploy-failure-alert-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
     "conditions": {
      "boolean": [
       {
@@ -27,12 +40,12 @@
      ]
     }
    },
-   "id": "deploy-failure-alert-1",
+   "id": "deploy-failure-alert-2",
    "name": "Failed?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
-    260,
+    520,
     300
    ]
   },
@@ -40,12 +53,12 @@
    "parameters": {
     "jsCode": "const b=$json.body;const log=String(b.log||'').replace(/(token|secret|key)[=:]\\s*\\S+/gi,'$1=[hidden]').slice(-800);return [{json:{app:b.app,url:b.url,log}}];"
    },
-   "id": "deploy-failure-alert-2",
+   "id": "deploy-failure-alert-3",
    "name": "Clean",
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
    "position": [
-    520,
+    780,
     300
    ]
   },
@@ -54,20 +67,45 @@
     "chatId": "REPLACE_ME_CHAT_ID",
     "text": "=Deploy failed: {{$json.app}}\n{{$json.url}}\n{{$json.log}}"
    },
-   "id": "deploy-failure-alert-3",
+   "id": "deploy-failure-alert-4",
    "name": "Telegram",
    "type": "n8n-nodes-base.telegram",
    "typeVersion": 1.2,
    "position": [
-    780,
+    1040,
     300
    ]
   },
   {
+   "parameters": {},
+   "id": "deploy-failure-alert-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
    "parameters": {
-    "content": "## Deploy failure alert\nReceives a CI or deploy webhook and sends a plain summary of what failed, with a link.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Strips tokens and long logs before alerting. Sends only to your own chat.\n\nNo secrets are stored in this file.",
-    "height": 200,
-    "width": 520
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "deploy-failure-alert-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Deploy failure alert\nReceives a CI or deploy webhook and sends a plain summary of what failed, with a link.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Strips tokens and long logs before alerting. Sends only to your own chat.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
    },
    "id": "deploy-failure-alert-note",
    "name": "Read me",
@@ -75,12 +113,23 @@
    "typeVersion": 1,
    "position": [
     0,
-    60
+    20
    ]
   }
  ],
  "connections": {
   "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
    "main": [
     [
      {
@@ -107,6 +156,17 @@
     [
      {
       "node": "Telegram",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
       "type": "main",
       "index": 0
      }

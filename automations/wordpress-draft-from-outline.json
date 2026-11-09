@@ -1,0 +1,198 @@
+{
+ "name": "WordPress draft from outline",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "outline",
+    "responseMode": "onReceived"
+   },
+   "id": "wordpress-draft-from-outline-0",
+   "name": "Webhook",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "wordpress-draft-from-outline-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Expand into a clear 500-word post. No invented stats or quotes.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{$json.body.outline}}\"}]}"
+   },
+   "id": "wordpress-draft-from-outline-2",
+   "name": "Write draft",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "return [{json:{title:$('Webhook').item.json.body.title,body:$json.content[0].text}}];"
+   },
+   "id": "wordpress-draft-from-outline-3",
+   "name": "Shape",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "post",
+    "operation": "create",
+    "title": "={{$json.title}}",
+    "additionalFields": {
+     "status": "draft",
+     "content": "={{$json.body}}"
+    }
+   },
+   "id": "wordpress-draft-from-outline-4",
+   "name": "Create WP draft",
+   "type": "n8n-nodes-base.wordpress",
+   "typeVersion": 1,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "wordpress-draft-from-outline-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "wordpress-draft-from-outline-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## WordPress draft from outline\nExpands an outline into a draft post in WordPress, as a draft only.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Always creates status = draft. Nothing is published without you.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "wordpress-draft-from-outline-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "Write draft",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Write draft": {
+   "main": [
+    [
+     {
+      "node": "Shape",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Shape": {
+   "main": [
+    [
+     {
+      "node": "Create WP draft",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Content",
+  "description": "Expands an outline into a draft post in WordPress, as a draft only.",
+  "guardrails": "Always creates status = draft. Nothing is published without you."
+ }
+}

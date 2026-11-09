@@ -1,0 +1,259 @@
+{
+ "name": "Slack standup collector",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 9 * * 1-5"
+      }
+     ]
+    }
+   },
+   "id": "slack-standup-collector-0",
+   "name": "Schedule",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "slack-standup-collector-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "select": "channel",
+    "channelId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "REPLACE_ME_CHANNEL"
+    },
+    "text": "=Standup time: what did you do, what is next, any blockers? Reply in thread."
+   },
+   "id": "slack-standup-collector-2",
+   "name": "Slack",
+   "type": "n8n-nodes-base.slack",
+   "typeVersion": 2.2,
+   "position": [
+    520,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "amount": 2,
+    "unit": "hours"
+   },
+   "id": "slack-standup-collector-3",
+   "name": "Wait for replies",
+   "type": "n8n-nodes-base.wait",
+   "typeVersion": 1.1,
+   "position": [
+    780,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "https://slack.com/api/conversations.replies"
+   },
+   "id": "slack-standup-collector-4",
+   "name": "Read replies",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1040,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      }
+     ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\"model\": \"claude-haiku-5-5\", \"max_tokens\": 800, \"system\": \"Summarize by person. Write 'no update' for anyone silent.\", \"messages\": [{\"role\": \"user\", \"content\": \"={{JSON.stringify($json)}}\"}]}"
+   },
+   "id": "slack-standup-collector-5",
+   "name": "Summarize",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1300,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "select": "channel",
+    "channelId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "REPLACE_ME_CHANNEL"
+    },
+    "text": "={{$json.content[0].text}}"
+   },
+   "id": "slack-standup-collector-6",
+   "name": "Slack 2",
+   "type": "n8n-nodes-base.slack",
+   "typeVersion": 2.2,
+   "position": [
+    1560,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "id": "slack-standup-collector-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "slack-standup-collector-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Slack standup collector\nAsks each person three questions every weekday and posts one combined summary for the team.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Skipped answers are listed as 'no update', not filled in.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
+   },
+   "id": "slack-standup-collector-note",
+   "name": "Read me",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    0,
+    20
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
+   "main": [
+    [
+     {
+      "node": "Slack",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Slack": {
+   "main": [
+    [
+     {
+      "node": "Wait for replies",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Wait for replies": {
+   "main": [
+    [
+     {
+      "node": "Read replies",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read replies": {
+   "main": [
+    [
+     {
+      "node": "Summarize",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Summarize": {
+   "main": [
+    [
+     {
+      "node": "Slack 2",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ },
+ "meta": {
+  "category": "Team",
+  "description": "Asks each person three questions every weekday and posts one combined summary for the team.",
+  "guardrails": "Skipped answers are listed as 'no update', not filled in."
+ }
+}

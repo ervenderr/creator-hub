@@ -23,6 +23,19 @@
   },
   {
    "parameters": {
+    "jsCode": "if(!$input.all().length||Object.keys($input.first().json||{}).length===0)throw new Error('Empty input');return $input.all();"
+   },
+   "id": "approved-post-publisher-1",
+   "name": "Validate input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    300
+   ]
+  },
+  {
+   "parameters": {
     "operation": "getAll",
     "documentId": {
      "__rl": true,
@@ -35,12 +48,12 @@
      "value": "Sheet1"
     }
    },
-   "id": "approved-post-publisher-1",
+   "id": "approved-post-publisher-2",
    "name": "Get approved rows",
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    260,
+    520,
     300
    ]
   },
@@ -55,12 +68,12 @@
      ]
     }
    },
-   "id": "approved-post-publisher-2",
+   "id": "approved-post-publisher-3",
    "name": "Approved?",
    "type": "n8n-nodes-base.if",
    "typeVersion": 1,
    "position": [
-    520,
+    780,
     300
    ]
   },
@@ -69,12 +82,12 @@
     "method": "POST",
     "url": "REPLACE_ME_POSTING_ENDPOINT"
    },
-   "id": "approved-post-publisher-3",
+   "id": "approved-post-publisher-4",
    "name": "Publish",
    "type": "n8n-nodes-base.httpRequest",
    "typeVersion": 4.2,
    "position": [
-    780,
+    1040,
     300
    ]
   },
@@ -92,20 +105,45 @@
      "value": "Sheet1"
     }
    },
-   "id": "approved-post-publisher-4",
+   "id": "approved-post-publisher-5",
    "name": "Mark posted",
    "type": "n8n-nodes-base.googleSheets",
    "typeVersion": 4.5,
    "position": [
-    1040,
+    1300,
     300
    ]
   },
   {
+   "parameters": {},
+   "id": "approved-post-publisher-err",
+   "name": "On error",
+   "type": "n8n-nodes-base.errorTrigger",
+   "typeVersion": 1,
+   "position": [
+    0,
+    560
+   ]
+  },
+  {
    "parameters": {
-    "content": "## Approved post publisher\nPublishes only the sheet rows you marked approved, once, then marks them posted.\n\n**Setup:** add your credentials to each node, replace every REPLACE_ME, then test with one item before activating.\n\n**Guardrails:** Posts only rows with status = approved, and writes status = posted right after to prevent duplicates.\n\nNo secrets are stored in this file.",
-    "height": 200,
-    "width": 520
+    "chatId": "REPLACE_ME_CHAT_ID",
+    "text": "=Automation failed: {{$json.workflow.name}}\n{{$json.execution.error.message}}"
+   },
+   "id": "approved-post-publisher-alert",
+   "name": "Alert me",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    260,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Approved post publisher\nPublishes only the sheet rows you marked approved, once, then marks them posted.\n\n**Setup:** add credentials to each node, replace every REPLACE_ME, test with one item, then activate.\n\n**Guardrails:** Posts only rows with status = approved, and writes status = posted right after to prevent duplicates.\n\nBad or empty input stops the run and alerts you. No secrets are stored in this file.",
+    "height": 220,
+    "width": 560
    },
    "id": "approved-post-publisher-note",
    "name": "Read me",
@@ -113,12 +151,23 @@
    "typeVersion": 1,
    "position": [
     0,
-    60
+    20
    ]
   }
  ],
  "connections": {
   "Schedule": {
+   "main": [
+    [
+     {
+      "node": "Validate input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Validate input": {
    "main": [
     [
      {
@@ -156,6 +205,17 @@
     [
      {
       "node": "Mark posted",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "On error": {
+   "main": [
+    [
+     {
+      "node": "Alert me",
       "type": "main",
       "index": 0
      }
